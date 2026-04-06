@@ -23,6 +23,15 @@ const BackupCodeSchema = new Schema(
   { _id: false },
 );
 
+const ExperimentAssignmentSchema = new Schema(
+  {
+    studyId: { type: String, required: true },
+    variant: { type: String, required: true },
+    assignedAt: { type: Date, required: true, default: () => new Date() },
+  },
+  { _id: false },
+);
+
 const userSchema = new Schema<IUser>(
   {
     name: {
@@ -143,6 +152,9 @@ const userSchema = new Schema<IUser>(
         },
       ],
       default: [],
+    },
+    experimentAssignment: {
+      type: ExperimentAssignmentSchema,
     },
     /** Field for external source identification (for consistency with TPrincipal schema) */
     idOnTheSource: {
