@@ -11,6 +11,5 @@
     "declaration": false,
     "sourceMap": true
   },
-  "include": ["src"],
-  "exclude": ["src/vertex-ai.ts"]
+  "include": ["src"]
 }
