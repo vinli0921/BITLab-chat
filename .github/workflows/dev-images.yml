@@ -9,6 +9,9 @@ on:
       - 'api/**'
       - 'client/**'
       - 'packages/**'
+      - 'mcp-servers/**'
+      - 'Dockerfile*'
+      - 'librechat.yaml'
 
 jobs:
   build:
