@@ -42,8 +42,8 @@ const convoSchema: Schema<IConversation> = new Schema(
     },
     experimentContext: {
       type: {
-        studyId: { type: String },
-        variant: { type: String },
+        studyId: { type: String, required: true },
+        variant: { type: String, required: true },
         adShownAt: { type: [String], default: [] },
       },
       default: undefined,

@@ -4,6 +4,7 @@ import { createSessionModel } from './session';
 import { createBalanceModel } from './balance';
 import { createConversationModel } from './convo';
 import { createMessageModel } from './message';
+import { createAdEventModel } from './adEvent';
 import { createAgentModel } from './agent';
 import { createAgentApiKeyModel } from './agentApiKey';
 import { createAgentCategoryModel } from './agentCategory';
@@ -28,7 +29,6 @@ import { createAclEntryModel } from './aclEntry';
 import { createSystemGrantModel } from './systemGrant';
 import { createGroupModel } from './group';
 import { createConfigModel } from './config';
-import { createAdEventModel } from './adEvent';
 
 /**
  * Creates all database models for all collections

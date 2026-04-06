@@ -1,7 +1,10 @@
 import type { Types, Document } from 'mongoose';
 
-export type AdEventType = 'impression' | 'click' | 'link_visit' | 'dismiss';
-export type ProductSource = 'organic' | 'sponsored';
+export const AD_EVENT_TYPES = ['impression', 'click', 'link_visit', 'dismiss'] as const;
+export type AdEventType = (typeof AD_EVENT_TYPES)[number];
+
+export const PRODUCT_SOURCES = ['organic', 'sponsored'] as const;
+export type ProductSource = (typeof PRODUCT_SOURCES)[number];
 
 export interface IAdEvent extends Document {
   userId: Types.ObjectId;

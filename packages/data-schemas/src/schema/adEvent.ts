@@ -1,5 +1,6 @@
 import { Schema } from 'mongoose';
 import type { IAdEvent } from '~/types/adEvent';
+import { AD_EVENT_TYPES, PRODUCT_SOURCES } from '~/types/adEvent';
 
 const adEventSchema = new Schema<IAdEvent>(
   {
@@ -11,12 +12,12 @@ const adEventSchema = new Schema<IAdEvent>(
     eventType: {
       type: String,
       required: true,
-      enum: ['impression', 'click', 'link_visit', 'dismiss'],
+      enum: AD_EVENT_TYPES,
     },
     productSource: {
       type: String,
       required: true,
-      enum: ['organic', 'sponsored'],
+      enum: PRODUCT_SOURCES,
     },
     productId: { type: String },
     productName: { type: String },
