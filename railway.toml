@@ -1,0 +1,8 @@
+[build]
+dockerfilePath = "Dockerfile.multi"
+dockerBuildTarget = "api-build"
+
+[deploy]
+startCommand = "node server/index.js"
+restartPolicyType = "ON_FAILURE"
+restartPolicyMaxRetries = 10
