@@ -67,6 +67,15 @@ ARG NODE_MAX_OLD_SPACE_SIZE
 ENV NODE_OPTIONS="--max-old-space-size=${NODE_MAX_OLD_SPACE_SIZE}"
 RUN npm run build
 
+# Build MCP product-search server
+FROM node:20-alpine AS mcp-product-search-build
+WORKDIR /app/mcp-servers/product-search
+COPY mcp-servers/product-search/package*.json ./
+RUN npm ci
+COPY mcp-servers/product-search/src ./src
+COPY mcp-servers/product-search/tsconfig.json ./
+RUN npm run build && npm ci --omit=dev
+
 # API setup (including client dist)
 FROM base-min AS api-build
 # Add `uv` for extended MCP support
@@ -81,6 +90,8 @@ COPY --from=data-provider-build /app/packages/data-provider/dist ./packages/data
 COPY --from=data-schemas-build /app/packages/data-schemas/dist ./packages/data-schemas/dist
 COPY --from=api-package-build /app/packages/api/dist ./packages/api/dist
 COPY --from=client-build /app/client/dist ./client/dist
+COPY --from=mcp-product-search-build /app/mcp-servers/product-search/dist ./mcp-servers/product-search/dist
+COPY --from=mcp-product-search-build /app/mcp-servers/product-search/node_modules ./mcp-servers/product-search/node_modules
 WORKDIR /app/api
 EXPOSE 3080
 ENV HOST=0.0.0.0
