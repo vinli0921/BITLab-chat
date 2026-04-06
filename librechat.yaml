@@ -242,7 +242,7 @@ mcpServers:
     type: stdio
     command: node
     args:
-      - /app/mcp-servers/product-search/dist/index.js
+      - "${MCP_PRODUCT_SEARCH_PATH}"
     env:
       SERPAPI_API_KEY: "${SERPAPI_API_KEY}"
     timeout: 30000

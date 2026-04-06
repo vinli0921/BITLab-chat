@@ -3,6 +3,7 @@ import { UIResourceRenderer } from '@mcp-ui/client';
 import type { UIResource } from 'librechat-data-provider';
 import { useOptionalMessagesOperations } from '~/Providers';
 import { handleUIAction } from '~/utils';
+import ProductCard, { PRODUCT_CARD_MIME_TYPE } from './ProductCard';
 
 interface UIResourceCarouselProps {
   uiResources: UIResource[];
@@ -94,6 +95,7 @@ const UIResourceCarousel: React.FC<UIResourceCarouselProps> = React.memo(({ uiRe
         className="hide-scrollbar flex gap-4 overflow-x-auto scroll-smooth"
       >
         {uiResources.map((uiResource, index) => {
+          const isProductCard = uiResource.mimeType === PRODUCT_CARD_MIME_TYPE;
           const height = 360;
           const width = 230;
 
@@ -108,13 +110,17 @@ const UIResourceCarousel: React.FC<UIResourceCarouselProps> = React.memo(({ uiRe
               }}
             >
               <div className="flex h-full flex-col">
-                <UIResourceRenderer
-                  resource={uiResource}
-                  onUIAction={async (result) => handleUIAction(result, ask)}
-                  htmlProps={{
-                    autoResizeIframe: { width: true, height: true },
-                  }}
-                />
+                {isProductCard ? (
+                  <ProductCard text={uiResource.text ?? ''} />
+                ) : (
+                  <UIResourceRenderer
+                    resource={uiResource}
+                    onUIAction={async (result) => handleUIAction(result, ask)}
+                    htmlProps={{
+                      autoResizeIframe: { width: true, height: true },
+                    }}
+                  />
+                )}
               </div>
             </div>
           );

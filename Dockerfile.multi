@@ -90,6 +90,7 @@ COPY --from=data-provider-build /app/packages/data-provider/dist ./packages/data
 COPY --from=data-schemas-build /app/packages/data-schemas/dist ./packages/data-schemas/dist
 COPY --from=api-package-build /app/packages/api/dist ./packages/api/dist
 COPY --from=client-build /app/client/dist ./client/dist
+COPY --from=mcp-product-search-build /app/mcp-servers/product-search/package.json ./mcp-servers/product-search/package.json
 COPY --from=mcp-product-search-build /app/mcp-servers/product-search/dist ./mcp-servers/product-search/dist
 COPY --from=mcp-product-search-build /app/mcp-servers/product-search/node_modules ./mcp-servers/product-search/node_modules
 COPY librechat.yaml ./
