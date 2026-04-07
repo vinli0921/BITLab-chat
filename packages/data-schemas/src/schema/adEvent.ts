@@ -5,7 +5,7 @@ import { AD_EVENT_TYPES, PRODUCT_SOURCES } from '~/types/adEvent';
 const adEventSchema = new Schema<IAdEvent>(
   {
     userId: { type: Schema.Types.ObjectId, required: true, index: true },
-    conversationId: { type: Schema.Types.ObjectId, required: true, index: true },
+    conversationId: { type: String, required: true, index: true },
     messageId: { type: String, required: true },
     studyId: { type: String, required: true },
     variant: { type: String, required: true },

@@ -110,7 +110,7 @@ describe('logAdEvent', () => {
     const user = await createUser('sponsored-inline');
     await logAdEvent({
       userId: user._id.toString(),
-      conversationId: new mongoose.Types.ObjectId().toString(),
+      conversationId: 'convo-test-123',
       messageId: 'msg-click',
       studyId: 'study-1',
       variant: 'sponsored-inline',

@@ -1,11 +1,11 @@
+import type { IAdEvent, IConversation, AdEventType, ProductSource } from '@librechat/data-schemas';
 import type { Types } from 'mongoose';
 import type mongoose from 'mongoose';
-import type { IAdEvent, IConversation, AdEventType, ProductSource } from '@librechat/data-schemas';
-import type { Variant } from './constants';
 import type { ProductCardData } from './ads';
+import type { Variant } from './constants';
 import { detectCommercialIntent } from './intent';
-import { getMockAds } from './ads';
 import { STUDY_ID } from './constants';
+import { getMockAds } from './ads';
 
 interface AdContextParams {
   userId: string;

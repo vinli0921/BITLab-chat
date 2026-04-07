@@ -8,7 +8,7 @@ export type ProductSource = (typeof PRODUCT_SOURCES)[number];
 
 export interface IAdEvent extends Document {
   userId: Types.ObjectId;
-  conversationId: Types.ObjectId;
+  conversationId: string;
   messageId: string;
   studyId: string;
   variant: string;
