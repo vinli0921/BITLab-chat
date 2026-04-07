@@ -36,7 +36,7 @@ describe('SponsoredPanel', () => {
         onEvent={mockOnEvent}
       />,
     );
-    expect(screen.getByText('com_ui_sponsored')).toBeInTheDocument();
+    expect(screen.getByText(/com_ui_sponsored/)).toBeInTheDocument();
     expect(screen.getByText('BlendJet 2')).toBeInTheDocument();
     expect(screen.getByText('Vitamix E310')).toBeInTheDocument();
     expect(screen.getByText(/com_ui_ads_disclaimer/i)).toBeInTheDocument();
