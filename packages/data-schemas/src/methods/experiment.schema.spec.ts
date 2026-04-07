@@ -1,6 +1,9 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import { createModels } from '~/models';
+import type { IUser } from '~/types/user';
+import type { IConversation } from '~/types/convo';
+import type { IAdEvent } from '~/types/adEvent';
 
 let mongod: MongoMemoryServer;
 
@@ -34,7 +37,7 @@ describe('User experimentAssignment', () => {
         assignedAt: new Date(),
       },
     });
-    const found = await User.findById(user._id).lean();
+    const found = await User.findById(user._id).lean<IUser>();
     expect(found?.experimentAssignment?.studyId).toBe('study-1');
     expect(found?.experimentAssignment?.variant).toBe('control');
     expect(found?.experimentAssignment?.assignedAt).toBeInstanceOf(Date);
@@ -47,7 +50,7 @@ describe('User experimentAssignment', () => {
       emailVerified: true,
       provider: 'local',
     });
-    const found = await User.findById(user._id).lean();
+    const found = await User.findById(user._id).lean<IUser>();
     expect(found?.experimentAssignment).toBeUndefined();
   });
 });
@@ -65,7 +68,7 @@ describe('Conversation experimentContext', () => {
         adShownAt: ['msg-abc', 'msg-def'],
       },
     });
-    const found = await Conversation.findById(convo._id).lean();
+    const found = await Conversation.findById(convo._id).lean<IConversation>();
     expect(found?.experimentContext?.studyId).toBe('study-1');
     expect(found?.experimentContext?.variant).toBe('sponsored-inline');
     expect(found?.experimentContext?.adShownAt).toEqual(['msg-abc', 'msg-def']);
@@ -87,7 +90,7 @@ describe('AdEvent model', () => {
       productSource: 'sponsored',
       queryText: 'best laptop under 1000',
     });
-    const found = await AdEvent.findById(event._id).lean();
+    const found = await AdEvent.findById(event._id).lean<IAdEvent>();
     expect(found?.eventType).toBe('impression');
     expect(found?.variant).toBe('sponsored-inline');
     expect(found?.timestamp).toBeInstanceOf(Date);
