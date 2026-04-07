@@ -53,8 +53,9 @@ const PartWithContext = memo(function PartWithContext({
       nextType,
       isSubmitting,
       isLatestMessage,
+      userMessageId,
     }),
-    [messageId, conversationId, idx, nextType, isSubmitting, isLatestMessage],
+    [messageId, conversationId, idx, nextType, isSubmitting, isLatestMessage, userMessageId],
   );
 
   return (

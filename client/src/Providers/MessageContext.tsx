@@ -10,6 +10,7 @@ type MessageContext = {
   isSubmitting?: boolean;
   /** Whether this is the latest message in the conversation */
   isLatestMessage?: boolean;
+  userMessageId?: string;
 };
 
 export const MessageContext = createContext<MessageContext>({} as MessageContext);
