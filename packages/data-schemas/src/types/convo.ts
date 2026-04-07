@@ -57,4 +57,9 @@ export interface IConversation extends Document {
   createdAt?: Date;
   updatedAt?: Date;
   tenantId?: string;
+  experimentContext?: {
+    studyId: string;
+    variant: string;
+    adShownAt: string[];
+  };
 }

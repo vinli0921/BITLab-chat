@@ -1,5 +1,9 @@
 ### node etc ###
 
+# Superpowers brainstorm sessions
+.superpowers/
+docs/superpowers/
+
 # Logs
 data-node
 meili_data*
@@ -177,3 +181,5 @@ claude-flow
 hive-mind-prompt-*.txt
 CLAUDE.md
 .gsd
+
+.worktrees/

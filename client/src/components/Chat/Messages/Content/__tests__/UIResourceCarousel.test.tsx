@@ -4,9 +4,19 @@ import type { UIResource } from 'librechat-data-provider';
 import UIResourceCarousel from '~/components/Chat/Messages/Content/UIResourceCarousel';
 import { handleUIAction } from '~/utils';
 
+jest.mock('~/hooks', () => ({
+  useLocalize: () => (key: string) => key,
+}));
+
 // Mock the UIResourceRenderer component
 jest.mock('@mcp-ui/client', () => ({
-  UIResourceRenderer: ({ resource, onUIAction }: any) => (
+  UIResourceRenderer: ({
+    resource,
+    onUIAction,
+  }: {
+    resource: UIResource;
+    onUIAction: (result: { action: string }) => void;
+  }) => (
     <div data-testid="ui-resource-renderer" onClick={() => onUIAction({ action: 'test' })}>
       {resource.text || 'UI Resource'}
     </div>
@@ -19,6 +29,15 @@ jest.mock('~/Providers', () => ({
   useOptionalMessagesOperations: () => ({
     ask: mockAsk,
   }),
+}));
+
+jest.mock('~/context/ExperimentContext', () => ({
+  useExperiment: () => ({ variant: null }),
+}));
+
+jest.mock('jotai', () => ({
+  ...jest.requireActual('jotai'),
+  useAtomValue: () => ({}),
 }));
 
 // Mock handleUIAction utility
@@ -35,11 +54,11 @@ Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
 
 describe('UIResourceCarousel', () => {
   const mockUIResources: UIResource[] = [
-    { uri: 'resource1', mimeType: 'text/html', text: 'Resource 1' },
-    { uri: 'resource2', mimeType: 'text/html', text: 'Resource 2' },
-    { uri: 'resource3', mimeType: 'text/html', text: 'Resource 3' },
-    { uri: 'resource4', mimeType: 'text/html', text: 'Resource 4' },
-    { uri: 'resource5', mimeType: 'text/html', text: 'Resource 5' },
+    { uri: 'resource1', mimeType: 'text/html', text: 'Resource 1', resourceId: 'res-1' },
+    { uri: 'resource2', mimeType: 'text/html', text: 'Resource 2', resourceId: 'res-2' },
+    { uri: 'resource3', mimeType: 'text/html', text: 'Resource 3', resourceId: 'res-3' },
+    { uri: 'resource4', mimeType: 'text/html', text: 'Resource 4', resourceId: 'res-4' },
+    { uri: 'resource5', mimeType: 'text/html', text: 'Resource 5', resourceId: 'res-5' },
   ];
 
   const mockHandleUIAction = handleUIAction as jest.MockedFunction<typeof handleUIAction>;

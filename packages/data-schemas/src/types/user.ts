@@ -46,6 +46,11 @@ export interface IUser extends Document {
     model?: string;
     endpoint?: string;
   }>;
+  experimentAssignment?: {
+    studyId: string;
+    variant: string;
+    assignedAt: Date;
+  };
   createdAt?: Date;
   updatedAt?: Date;
   /** Field for external source identification (for consistency with TPrincipal schema) */

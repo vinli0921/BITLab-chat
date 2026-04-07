@@ -4,6 +4,7 @@ import { createSessionModel } from './session';
 import { createBalanceModel } from './balance';
 import { createConversationModel } from './convo';
 import { createMessageModel } from './message';
+import { createAdEventModel } from './adEvent';
 import { createAgentModel } from './agent';
 import { createAgentApiKeyModel } from './agentApiKey';
 import { createAgentCategoryModel } from './agentCategory';
@@ -64,5 +65,6 @@ export function createModels(mongoose: typeof import('mongoose')) {
     SystemGrant: createSystemGrantModel(mongoose),
     Group: createGroupModel(mongoose),
     Config: createConfigModel(mongoose),
+    AdEvent: createAdEventModel(mongoose),
   };
 }

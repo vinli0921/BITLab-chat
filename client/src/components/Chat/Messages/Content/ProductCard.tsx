@@ -1,23 +1,13 @@
 import React from 'react';
 import { Star } from 'lucide-react';
+import type { ProductCardData } from '@librechat/api';
+import { useLocalize } from '~/hooks';
 
 export const PRODUCT_CARD_MIME_TYPE = 'application/vnd.librechat.product-card+json';
 
-interface ProductCardData {
-  name: string;
-  price: string;
-  storeName: string;
-  buyUrl: string;
-  imageUrl?: string;
-  imageAlt?: string;
-  badge?: string;
-  originalPrice?: string;
-  rating?: number;
-  reviewCount?: number;
-}
-
 interface ProductCardProps {
   text: string;
+  sponsored?: boolean;
 }
 
 function StarRating({ rating, reviewCount }: { rating: number; reviewCount?: number }) {
@@ -47,14 +37,15 @@ function StarRating({ rating, reviewCount }: { rating: number; reviewCount?: num
   );
 }
 
-export default function ProductCard({ text }: ProductCardProps) {
+export default function ProductCard({ text, sponsored = false }: ProductCardProps) {
+  const localize = useLocalize();
   let product: ProductCardData;
   try {
     product = JSON.parse(text) as ProductCardData;
   } catch {
     return (
       <div className="flex h-full items-center justify-center text-sm text-red-500">
-        Invalid product data
+        {localize('com_ui_invalid_product_data')}
       </div>
     );
   }
@@ -75,7 +66,12 @@ export default function ProductCard({ text }: ProductCardProps) {
           />
         ) : (
           <div className="flex h-full items-center justify-center text-text-secondary">
-            <svg className="h-12 w-12 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="h-12 w-12 opacity-30"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
@@ -93,6 +89,11 @@ export default function ProductCard({ text }: ProductCardProps) {
       </div>
 
       <div className="flex flex-1 flex-col gap-1.5 p-3">
+        {sponsored && (
+          <span className="mb-1 inline-block rounded bg-yellow-100 px-1.5 py-0.5 text-[10px] font-bold text-yellow-800">
+            {localize('com_ui_sponsored')}
+          </span>
+        )}
         <p className="line-clamp-3 text-sm font-medium leading-snug text-text-primary">
           {product.name}
         </p>

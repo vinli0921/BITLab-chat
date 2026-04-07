@@ -3,6 +3,7 @@ import type { UIResource } from 'librechat-data-provider';
 import { useConversationUIResources } from '~/hooks/Messages/useConversationUIResources';
 import UIResourceCarousel from '../Chat/Messages/Content/UIResourceCarousel';
 import { useOptionalMessagesConversation } from '~/Providers';
+import { useMessageContext } from '~/Providers/MessageContext';
 
 interface MCPUIResourceCarouselProps {
   node: {
@@ -15,6 +16,7 @@ interface MCPUIResourceCarouselProps {
 /** Renders multiple MCP UI resources in a carousel. Works in chat, share, and search views. */
 export function MCPUIResourceCarousel(props: MCPUIResourceCarouselProps) {
   const { conversationId } = useOptionalMessagesConversation();
+  const { userMessageId } = useMessageContext();
 
   const conversationResourceMap = useConversationUIResources(conversationId ?? undefined);
 
@@ -28,5 +30,5 @@ export function MCPUIResourceCarousel(props: MCPUIResourceCarouselProps) {
     return null;
   }
 
-  return <UIResourceCarousel uiResources={uiResources} />;
+  return <UIResourceCarousel uiResources={uiResources} userMessageId={userMessageId} />;
 }

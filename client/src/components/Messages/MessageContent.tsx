@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useMessageProcess, useMemoizedChatContext } from '~/hooks';
 import type { TMessageProps } from '~/common';
-
+import { useExperiment } from '~/context/ExperimentContext';
+import { useAdContext, postAdEvent } from '~/hooks/useAdContext';
+import SponsoredPanel from '~/components/Chat/Messages/SponsoredPanel';
 import MultiMessage from '~/components/Chat/Messages/MultiMessage';
 import ContentRender from './ContentRender';
 
@@ -30,6 +32,29 @@ export default function MessageContent(props: TMessageProps) {
   const { message, currentEditId, setCurrentEditId } = props;
   const { chatContext, effectiveIsSubmitting } = useMemoizedChatContext(message, isSubmitting);
 
+  const { variant } = useExperiment();
+  const { getAdContext, getResult } = useAdContext();
+
+  useEffect(() => {
+    if (!message?.isCreatedByUser || !message?.text || !conversation?.conversationId) return;
+    void getAdContext({
+      userMessageId: message.messageId ?? '',
+      userMessageText: message.text,
+      conversationId: conversation.conversationId,
+    });
+  }, [
+    message?.isCreatedByUser,
+    message?.messageId,
+    message?.text,
+    conversation?.conversationId,
+    getAdContext,
+  ]);
+
+  const adResult = !message?.isCreatedByUser
+    ? getResult(message?.parentMessageId ?? '')
+    : undefined;
+  const showSponsoredPanel = variant === 'sponsored-outside' && adResult?.showAd === true;
+
   if (!message || typeof message !== 'object') {
     return null;
   }
@@ -44,9 +69,21 @@ export default function MessageContent(props: TMessageProps) {
             {...props}
             isSubmitting={effectiveIsSubmitting}
             chatContext={chatContext}
+            userMessageId={
+              !message.isCreatedByUser ? (message.parentMessageId ?? undefined) : undefined
+            }
           />
         </div>
       </MessageContainer>
+      {!message.isCreatedByUser && showSponsoredPanel && adResult?.products && (
+        <SponsoredPanel
+          products={adResult.products}
+          messageId={message.parentMessageId ?? ''}
+          conversationId={conversation?.conversationId ?? ''}
+          queryText={adResult.queryText}
+          onEvent={(payload) => void postAdEvent(payload)}
+        />
+      )}
       <MultiMessage
         messageId={messageId}
         conversation={conversation}

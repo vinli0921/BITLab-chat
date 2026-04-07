@@ -26,6 +26,7 @@ type PartProps = {
   showCursor: boolean;
   isCreatedByUser: boolean;
   attachments?: TAttachment[];
+  userMessageId?: string;
 };
 
 const Part = memo(function Part({
@@ -35,6 +36,7 @@ const Part = memo(function Part({
   isLast,
   showCursor,
   isCreatedByUser,
+  userMessageId,
 }: PartProps) {
   if (!part) {
     return null;
@@ -180,6 +182,7 @@ const Part = memo(function Part({
           attachments={attachments}
           auth={toolCall.auth}
           isLast={isLast}
+          userMessageId={userMessageId}
         />
       );
     } else if (toolCall.type === ToolCallTypes.CODE_INTERPRETER) {
@@ -237,6 +240,7 @@ const Part = memo(function Part({
           name={toolCall.function.name}
           output={toolCall.function.output}
           isLast={isLast}
+          userMessageId={userMessageId}
         />
       );
     }
