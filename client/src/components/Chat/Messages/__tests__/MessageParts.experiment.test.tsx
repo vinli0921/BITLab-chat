@@ -85,28 +85,30 @@ const { useExperiment } = jest.requireMock('~/context/ExperimentContext');
 const { useAdContext } = jest.requireMock('~/hooks/useAdContext');
 const { useMessageHelpers, useAttachments, useContentMetadata } = jest.requireMock('~/hooks');
 
-const makeMessage = (overrides: Partial<TMessage> = {}): TMessage => ({
-  messageId: 'msg-assistant-1',
-  parentMessageId: 'msg-user-1',
-  conversationId: 'test-convo-1',
-  text: 'Hello from assistant',
-  content: [],
-  isCreatedByUser: false,
-  endpoint: 'openAI',
-  children: [],
-  ...overrides,
-} as TMessage);
+const makeMessage = (overrides: Partial<TMessage> = {}): TMessage =>
+  ({
+    messageId: 'msg-assistant-1',
+    parentMessageId: 'msg-user-1',
+    conversationId: 'test-convo-1',
+    text: 'Hello from assistant',
+    content: [],
+    isCreatedByUser: false,
+    endpoint: 'openAI',
+    children: [],
+    ...overrides,
+  }) as TMessage;
 
-const makeProps = (overrides: Partial<TMessageProps> = {}): TMessageProps => ({
-  message: makeMessage(),
-  siblingIdx: 0,
-  siblingCount: 1,
-  setSiblingIdx: jest.fn(),
-  currentEditId: null,
-  setCurrentEditId: jest.fn(),
-  isSubmitting: false,
-  ...overrides,
-} as TMessageProps);
+const makeProps = (overrides: Partial<TMessageProps> = {}): TMessageProps =>
+  ({
+    message: makeMessage(),
+    siblingIdx: 0,
+    siblingCount: 1,
+    setSiblingIdx: jest.fn(),
+    currentEditId: null,
+    setCurrentEditId: jest.fn(),
+    isSubmitting: false,
+    ...overrides,
+  }) as TMessageProps;
 
 const mockConversation = {
   conversationId: 'convo-1',
@@ -144,7 +146,14 @@ describe('MessageParts experiment integration', () => {
     useExperiment.mockReturnValue({ variant: 'control' });
     useAdContext.mockReturnValue({
       getAdContext: jest.fn(),
-      getResult: jest.fn(() => ({ showAd: true, variant: 'control', queryText: 'test query', products: [{ name: 'Product A', price: '$10', storeName: 'Store', buyUrl: 'https://example.com' }] })),
+      getResult: jest.fn(() => ({
+        showAd: true,
+        variant: 'control',
+        queryText: 'test query',
+        products: [
+          { name: 'Product A', price: '$10', storeName: 'Store', buyUrl: 'https://example.com' },
+        ],
+      })),
     });
 
     const store = createStore();
@@ -165,7 +174,9 @@ describe('MessageParts experiment integration', () => {
         showAd: true as const,
         variant: 'sponsored-outside',
         queryText: 'test query',
-        products: [{ name: 'Sponsored Widget', price: '$25', storeName: 'AdCo', buyUrl: 'https://adco.com' }],
+        products: [
+          { name: 'Sponsored Widget', price: '$25', storeName: 'AdCo', buyUrl: 'https://adco.com' },
+        ],
       })),
     });
 

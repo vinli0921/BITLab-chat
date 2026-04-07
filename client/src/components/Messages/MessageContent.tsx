@@ -51,9 +51,17 @@ export default function MessageContent(props: TMessageProps) {
       userMessageText: message.text,
       conversationId: conversation.conversationId,
     });
-  }, [message?.isCreatedByUser, message?.messageId, message?.text, conversation?.conversationId, getAdContext]);
+  }, [
+    message?.isCreatedByUser,
+    message?.messageId,
+    message?.text,
+    conversation?.conversationId,
+    getAdContext,
+  ]);
 
-  const adResult = !message?.isCreatedByUser ? getResult(message?.parentMessageId ?? '') : undefined;
+  const adResult = !message?.isCreatedByUser
+    ? getResult(message?.parentMessageId ?? '')
+    : undefined;
   const showSponsoredPanel = variant === 'sponsored-outside' && adResult?.showAd === true;
 
   if (!message || typeof message !== 'object') {
@@ -70,7 +78,9 @@ export default function MessageContent(props: TMessageProps) {
             {...props}
             isSubmitting={effectiveIsSubmitting}
             chatContext={chatContext}
-            userMessageId={!message.isCreatedByUser ? (message.parentMessageId ?? undefined) : undefined}
+            userMessageId={
+              !message.isCreatedByUser ? (message.parentMessageId ?? undefined) : undefined
+            }
           />
         </div>
       </MessageContainer>

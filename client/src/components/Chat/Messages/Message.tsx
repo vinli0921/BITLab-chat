@@ -38,7 +38,13 @@ export default function Message(props: TMessageProps) {
       userMessageText: message.text,
       conversationId: conversation.conversationId,
     });
-  }, [message?.isCreatedByUser, message?.messageId, message?.text, conversation?.conversationId, getAdContext]);
+  }, [
+    message?.isCreatedByUser,
+    message?.messageId,
+    message?.text,
+    conversation?.conversationId,
+    getAdContext,
+  ]);
 
   if (!message || typeof message !== 'object') {
     return null;

@@ -36,7 +36,7 @@ export default function SponsoredPanel({
 
   return (
     <div className="mt-2 overflow-hidden rounded-xl border border-border-light bg-surface-primary">
-      <div className="flex items-center justify-between px-3 pt-2.5 pb-1.5">
+      <div className="flex items-center justify-between px-3 pb-1.5 pt-2.5">
         <div className="flex items-center gap-2">
           <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-[11px] font-bold text-white">
             {brandInitial}
@@ -50,14 +50,20 @@ export default function SponsoredPanel({
           className="text-text-secondary hover:text-text-primary"
           aria-label={localize('com_ui_ad_options')}
           onClick={() =>
-            onEvent({ eventType: 'dismiss', productSource: 'sponsored', messageId, conversationId, queryText })
+            onEvent({
+              eventType: 'dismiss',
+              productSource: 'sponsored',
+              messageId,
+              conversationId,
+              queryText,
+            })
           }
         >
           ···
         </button>
       </div>
 
-      <div className="flex gap-2 overflow-x-auto px-3 pb-2 scrollbar-hide">
+      <div className="scrollbar-hide flex gap-2 overflow-x-auto px-3 pb-2">
         {products.map((product, i) => (
           <a
             key={i}
@@ -84,7 +90,7 @@ export default function SponsoredPanel({
                 className="h-16 w-full rounded object-contain"
               />
             )}
-            <p className="text-[12px] font-medium text-text-primary line-clamp-2">{product.name}</p>
+            <p className="line-clamp-2 text-[12px] font-medium text-text-primary">{product.name}</p>
             <p className="text-[12px] text-text-secondary">{product.price}</p>
           </a>
         ))}

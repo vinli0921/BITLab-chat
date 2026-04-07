@@ -1092,6 +1092,7 @@
   "com_ui_initializing": "Initializing...",
   "com_ui_input": "Input",
   "com_ui_instructions": "Instructions",
+  "com_ui_invalid_product_data": "Invalid product data",
   "com_ui_key": "Key",
   "com_ui_key_required": "API key is required",
   "com_ui_labels": "Labels",

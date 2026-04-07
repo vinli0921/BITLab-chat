@@ -164,7 +164,9 @@ export default function ToolCallInfo({
       {uiResources.length > 0 && (
         <>
           {(hasParams || output) && <div className="my-2 border-t border-border-light" />}
-          {uiResources.length > 1 && <UIResourceCarousel uiResources={uiResources} userMessageId={userMessageId} />}
+          {uiResources.length > 1 && (
+            <UIResourceCarousel uiResources={uiResources} userMessageId={userMessageId} />
+          )}
           {uiResources.length === 1 && (
             <UIResourceRenderer
               resource={uiResources[0]}

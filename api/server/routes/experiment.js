@@ -36,12 +36,22 @@ router.post('/ad-context', async (req, res) => {
 
 router.post('/ad-event', async (req, res) => {
   try {
-    const { eventType, productSource, productId, productName, conversationId, messageId, queryText } = req.body;
+    const {
+      eventType,
+      productSource,
+      productId,
+      productName,
+      conversationId,
+      messageId,
+      queryText,
+    } = req.body;
     const variant = req.user.experimentAssignment?.variant ?? 'control';
     const studyId = req.user.experimentAssignment?.studyId ?? 'study-1';
 
     if (!eventType || !productSource || !conversationId || !messageId) {
-      return res.status(400).json({ error: 'eventType, productSource, conversationId, messageId required' });
+      return res
+        .status(400)
+        .json({ error: 'eventType, productSource, conversationId, messageId required' });
     }
 
     await logAdEvent({

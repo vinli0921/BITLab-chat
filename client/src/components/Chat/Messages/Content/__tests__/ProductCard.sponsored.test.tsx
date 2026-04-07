@@ -5,7 +5,7 @@ jest.mock('~/hooks', () => ({
   useLocalize:
     () =>
     (key: string): string =>
-      ({ com_ui_sponsored: 'Sponsored' } as Record<string, string>)[key] ?? key,
+      (({ com_ui_sponsored: 'Sponsored' }) as Record<string, string>)[key] ?? key,
 }));
 
 const baseProduct = JSON.stringify({

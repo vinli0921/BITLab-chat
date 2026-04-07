@@ -55,7 +55,13 @@ export default function Message(props: TMessageProps) {
       userMessageText: message.text,
       conversationId: conversation.conversationId,
     });
-  }, [isCreatedByUser, message?.messageId, message?.text, conversation?.conversationId, getAdContext]);
+  }, [
+    isCreatedByUser,
+    message?.messageId,
+    message?.text,
+    conversation?.conversationId,
+    getAdContext,
+  ]);
 
   const adResult = !isCreatedByUser ? getResult(message?.parentMessageId ?? '') : undefined;
   const showSponsoredPanel = variant === 'sponsored-outside' && adResult?.showAd === true;
@@ -165,7 +171,9 @@ export default function Message(props: TMessageProps) {
                     conversationId={conversation?.conversationId}
                     isLatestMessage={messageId === latestMessageId}
                     content={message.content as Array<TMessageContentParts | undefined>}
-                    userMessageId={!message.isCreatedByUser ? (message.parentMessageId ?? undefined) : undefined}
+                    userMessageId={
+                      !message.isCreatedByUser ? (message.parentMessageId ?? undefined) : undefined
+                    }
                   />
                 </div>
                 {isLast && isSubmitting ? (

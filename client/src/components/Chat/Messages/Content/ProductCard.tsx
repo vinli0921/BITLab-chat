@@ -45,7 +45,7 @@ export default function ProductCard({ text, sponsored = false }: ProductCardProp
   } catch {
     return (
       <div className="flex h-full items-center justify-center text-sm text-red-500">
-        Invalid product data
+        {localize('com_ui_invalid_product_data')}
       </div>
     );
   }
@@ -66,7 +66,12 @@ export default function ProductCard({ text, sponsored = false }: ProductCardProp
           />
         ) : (
           <div className="flex h-full items-center justify-center text-text-secondary">
-            <svg className="h-12 w-12 opacity-30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg
+              className="h-12 w-12 opacity-30"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
               <path
                 strokeLinecap="round"
                 strokeLinejoin="round"
