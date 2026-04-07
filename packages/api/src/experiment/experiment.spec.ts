@@ -1,6 +1,7 @@
 import mongoose from 'mongoose';
 import { createModels } from '@librechat/data-schemas';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import type { IUser } from '@librechat/data-schemas';
 import { detectCommercialIntent } from './intent';
 import { ensureAssignment } from './assignment';
 import { VARIANTS } from './constants';
@@ -66,7 +67,7 @@ describe('ensureAssignment', () => {
     const variant = await ensureAssignment(user._id.toString(), mongoose);
     expect(VARIANTS).toContain(variant);
 
-    const updated = await User.findById(user._id).lean();
+    const updated = await User.findById(user._id).lean<IUser>();
     expect(updated?.experimentAssignment?.variant).toBe(variant);
     expect(updated?.experimentAssignment?.studyId).toBe('study-1');
   });
@@ -82,7 +83,7 @@ describe('ensureAssignment', () => {
     const variant = await ensureAssignment(user._id.toString(), mongoose);
     expect(variant).toBe('control');
 
-    const reloaded = await User.findById(user._id).lean();
+    const reloaded = await User.findById(user._id).lean<IUser>();
     expect(reloaded?.experimentAssignment?.variant).toBe('control');
   });
 });

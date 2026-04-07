@@ -81,8 +81,10 @@ describe('getAdContext', () => {
       db: mongoose,
     });
     expect(result.showAd).toBe(true);
-    expect(result.variant).toBe('sponsored-inline');
-    expect(result.products).toHaveLength(2);
+    if (result.showAd) {
+      expect(result.variant).toBe('sponsored-inline');
+      expect(result.products).toHaveLength(2);
+    }
 
     const adEvents = await mongoose.models.AdEvent.find({ messageId: 'msg-3' }).lean();
     expect(adEvents).toHaveLength(1);
@@ -101,7 +103,9 @@ describe('getAdContext', () => {
       db: mongoose,
     });
     expect(result.showAd).toBe(true);
-    expect(result.variant).toBe('sponsored-outside');
+    if (result.showAd) {
+      expect(result.variant).toBe('sponsored-outside');
+    }
   });
 });
 
