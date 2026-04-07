@@ -21,6 +21,15 @@ jest.mock('~/Providers', () => ({
   }),
 }));
 
+jest.mock('~/context/ExperimentContext', () => ({
+  useExperiment: () => ({ variant: null }),
+}));
+
+jest.mock('jotai', () => ({
+  ...jest.requireActual('jotai'),
+  useAtomValue: () => ({}),
+}));
+
 // Mock handleUIAction utility
 jest.mock('~/utils', () => ({
   handleUIAction: jest.fn(),

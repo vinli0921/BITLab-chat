@@ -18,6 +18,7 @@ interface ProductCardData {
 
 interface ProductCardProps {
   text: string;
+  sponsored?: boolean;
 }
 
 function StarRating({ rating, reviewCount }: { rating: number; reviewCount?: number }) {
@@ -47,7 +48,7 @@ function StarRating({ rating, reviewCount }: { rating: number; reviewCount?: num
   );
 }
 
-export default function ProductCard({ text }: ProductCardProps) {
+export default function ProductCard({ text, sponsored = false }: ProductCardProps) {
   let product: ProductCardData;
   try {
     product = JSON.parse(text) as ProductCardData;
@@ -93,6 +94,11 @@ export default function ProductCard({ text }: ProductCardProps) {
       </div>
 
       <div className="flex flex-1 flex-col gap-1.5 p-3">
+        {sponsored && (
+          <span className="mb-1 inline-block rounded bg-yellow-100 px-1.5 py-0.5 text-[10px] font-bold text-yellow-800">
+            Sponsored
+          </span>
+        )}
         <p className="line-clamp-3 text-sm font-medium leading-snug text-text-primary">
           {product.name}
         </p>

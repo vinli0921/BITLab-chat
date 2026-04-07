@@ -73,6 +73,7 @@ const PartWithContext = memo(function PartWithContext({
 type ContentPartsProps = {
   content: Array<TMessageContentParts | undefined> | undefined;
   messageId: string;
+  userMessageId?: string;
   conversationId?: string | null;
   attachments?: TAttachment[];
   searchResults?: { [key: string]: SearchResultData };
@@ -100,6 +101,7 @@ const ContentParts = memo(function ContentParts({
   isLast,
   content,
   messageId,
+  userMessageId,
   enterEdit,
   siblingIdx,
   attachments,
