@@ -4,9 +4,19 @@ import type { UIResource } from 'librechat-data-provider';
 import UIResourceCarousel from '~/components/Chat/Messages/Content/UIResourceCarousel';
 import { handleUIAction } from '~/utils';
 
+jest.mock('~/hooks', () => ({
+  useLocalize: () => (key: string) => key,
+}));
+
 // Mock the UIResourceRenderer component
 jest.mock('@mcp-ui/client', () => ({
-  UIResourceRenderer: ({ resource, onUIAction }: any) => (
+  UIResourceRenderer: ({
+    resource,
+    onUIAction,
+  }: {
+    resource: UIResource;
+    onUIAction: (result: { action: string }) => void;
+  }) => (
     <div data-testid="ui-resource-renderer" onClick={() => onUIAction({ action: 'test' })}>
       {resource.text || 'UI Resource'}
     </div>

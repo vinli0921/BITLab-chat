@@ -10,3 +10,5 @@ export interface AdContextResult {
 export const adContextAtom = atom<Record<string, AdContextResult>>({});
 
 export const adContextFiredAtom = atom<Set<string>>(new Set<string>());
+
+export const activeUserMessageIdAtom = atom<string | null>(null);

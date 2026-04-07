@@ -2,11 +2,11 @@ import React, { useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { UIResourceRenderer } from '@mcp-ui/client';
 import type { UIResource } from 'librechat-data-provider';
+import { adContextAtom, activeUserMessageIdAtom } from '~/store/experiment';
 import { useOptionalMessagesOperations } from '~/Providers';
-import { useExperiment } from '~/context/ExperimentContext';
-import { adContextAtom } from '~/store/experiment';
-import { handleUIAction } from '~/utils';
 import ProductCard, { PRODUCT_CARD_MIME_TYPE } from './ProductCard';
+import { useExperiment } from '~/context/ExperimentContext';
+import { handleUIAction } from '~/utils';
 
 interface UIResourceCarouselProps {
   uiResources: UIResource[];
@@ -24,7 +24,9 @@ const UIResourceCarousel: React.FC<UIResourceCarouselProps> = React.memo(
     const { ask } = useOptionalMessagesOperations();
     const { variant } = useExperiment();
     const adContextMap = useAtomValue(adContextAtom);
-    const adResult = userMessageId ? adContextMap[userMessageId] : undefined;
+    const atomUserMessageId = useAtomValue(activeUserMessageIdAtom);
+    const resolvedUserMessageId = userMessageId ?? atomUserMessageId ?? undefined;
+    const adResult = resolvedUserMessageId ? adContextMap[resolvedUserMessageId] : undefined;
 
     const sponsoredResources: SponsoredResource[] =
       variant === 'sponsored-inline' && adResult?.showAd

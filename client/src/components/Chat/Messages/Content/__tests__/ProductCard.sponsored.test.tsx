@@ -1,6 +1,13 @@
 import { render, screen } from '@testing-library/react';
 import ProductCard from '../ProductCard';
 
+jest.mock('~/hooks', () => ({
+  useLocalize:
+    () =>
+    (key: string): string =>
+      ({ com_ui_sponsored: 'Sponsored' } as Record<string, string>)[key] ?? key,
+}));
+
 const baseProduct = JSON.stringify({
   name: 'Test Blender',
   price: '$99',

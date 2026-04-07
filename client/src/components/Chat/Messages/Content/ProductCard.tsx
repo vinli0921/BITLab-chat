@@ -1,5 +1,6 @@
 import React from 'react';
 import { Star } from 'lucide-react';
+import { useLocalize } from '~/hooks';
 
 export const PRODUCT_CARD_MIME_TYPE = 'application/vnd.librechat.product-card+json';
 
@@ -49,6 +50,7 @@ function StarRating({ rating, reviewCount }: { rating: number; reviewCount?: num
 }
 
 export default function ProductCard({ text, sponsored = false }: ProductCardProps) {
+  const localize = useLocalize();
   let product: ProductCardData;
   try {
     product = JSON.parse(text) as ProductCardData;
@@ -96,7 +98,7 @@ export default function ProductCard({ text, sponsored = false }: ProductCardProp
       <div className="flex flex-1 flex-col gap-1.5 p-3">
         {sponsored && (
           <span className="mb-1 inline-block rounded bg-yellow-100 px-1.5 py-0.5 text-[10px] font-bold text-yellow-800">
-            Sponsored
+            {localize('com_ui_sponsored')}
           </span>
         )}
         <p className="line-clamp-3 text-sm font-medium leading-snug text-text-primary">
