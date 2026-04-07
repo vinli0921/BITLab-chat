@@ -1,5 +1,6 @@
 const express = require('express');
-const { isEnabled, getBalanceConfig } = require('@librechat/api');
+const mongoose = require('mongoose');
+const { isEnabled, getBalanceConfig, ensureAssignment } = require('@librechat/api');
 const { defaultSocialLogins } = require('librechat-data-provider');
 const { logger, getTenantId } = require('@librechat/data-schemas');
 const { getLdapConfig } = require('~/server/services/Config/ldap');
@@ -146,6 +147,7 @@ router.get('/', async function (req, res) {
       tenantId: req.user.tenantId || getTenantId(),
     });
 
+    const experimentVariant = await ensureAssignment(req.user.id, mongoose);
     const balanceConfig = getBalanceConfig(appConfig);
 
     /** @type {TStartupConfig} */
@@ -165,6 +167,7 @@ router.get('/', async function (req, res) {
       conversationImportMaxFileSize: process.env.CONVERSATION_IMPORT_MAX_FILE_SIZE_BYTES
         ? parseInt(process.env.CONVERSATION_IMPORT_MAX_FILE_SIZE_BYTES, 10)
         : 0,
+      experimentVariant,
     };
 
     const webSearch = buildWebSearchConfig(appConfig);

@@ -883,6 +883,7 @@ export type TStartupConfig = {
   >;
   mcpPlaceholder?: string;
   conversationImportMaxFileSize?: number;
+  experimentVariant?: 'control' | 'sponsored-inline' | 'sponsored-outside' | null;
 };
 
 export enum OCRStrategy {
