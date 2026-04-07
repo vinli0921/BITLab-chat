@@ -25,6 +25,7 @@ type ContentRenderProps = {
   /** Stable context object from wrapper — avoids ChatContext subscription inside memo */
   chatContext: TMessageChatContext;
   userMessageId?: string;
+  sponsoredPanel?: React.ReactNode;
 } & Pick<
   TMessageProps,
   'currentEditId' | 'setCurrentEditId' | 'siblingIdx' | 'setSiblingIdx' | 'siblingCount'
@@ -57,6 +58,9 @@ function areContentRenderPropsEqual(prev: ContentRenderProps, next: ContentRende
     return false;
   }
   if (prev.userMessageId !== next.userMessageId) {
+    return false;
+  }
+  if (prev.sponsoredPanel !== next.sponsoredPanel) {
     return false;
   }
 
@@ -96,6 +100,7 @@ const ContentRender = memo(function ContentRender({
   isSubmitting = false,
   chatContext,
   userMessageId,
+  sponsoredPanel,
 }: ContentRenderProps) {
   const localize = useLocalize();
   const { attachments, searchResults } = useAttachments({
@@ -255,6 +260,7 @@ const ContentRender = memo(function ContentRender({
               />
             </SubRow>
           )}
+          {sponsoredPanel}
         </div>
       </div>
     </div>

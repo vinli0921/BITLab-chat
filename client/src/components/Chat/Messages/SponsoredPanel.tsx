@@ -35,19 +35,23 @@ export default function SponsoredPanel({
   const brandInitial = brandName.charAt(0).toUpperCase();
 
   return (
-    <div className="mt-2 overflow-hidden rounded-xl border border-border-light bg-surface-primary">
-      <div className="flex items-center justify-between px-3 pb-1.5 pt-2.5">
-        <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-500 text-[11px] font-bold text-white">
+    <div className="mt-3">
+      {/* Top separator */}
+      <div className="mb-4 border-t border-border-light" />
+
+      {/* Header: brand icon + name · Sponsored + menu */}
+      <div className="mb-3 flex items-center justify-between">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-yellow-400 text-xs font-bold text-black">
             {brandInitial}
           </div>
-          <div>
-            <p className="text-[13px] font-semibold text-text-primary">{brandName}</p>
-            <p className="text-[11px] text-text-secondary">{localize('com_ui_sponsored')}</p>
-          </div>
+          <span className="text-sm text-text-primary">
+            {brandName}
+            <span className="text-text-tertiary"> · {localize('com_ui_sponsored')}</span>
+          </span>
         </div>
         <button
-          className="text-text-secondary hover:text-text-primary"
+          className="px-1 text-lg leading-none text-text-tertiary hover:text-text-primary"
           aria-label={localize('com_ui_ad_options')}
           onClick={() =>
             onEvent({
@@ -63,14 +67,15 @@ export default function SponsoredPanel({
         </button>
       </div>
 
-      <div className="scrollbar-hide flex gap-2 overflow-x-auto px-3 pb-2">
+      {/* Product cards — text-only, side by side */}
+      <div className="mb-4 flex gap-3">
         {products.map((product, i) => (
           <a
             key={i}
             href={product.buyUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex min-w-[140px] flex-col gap-1 rounded-lg border border-border-light bg-surface-secondary p-2 hover:bg-surface-hover"
+            className="flex-1 rounded-xl bg-surface-secondary p-4 transition-colors hover:bg-surface-hover"
             onClick={() =>
               onEvent({
                 eventType: 'link_visit',
@@ -83,22 +88,21 @@ export default function SponsoredPanel({
               })
             }
           >
-            {product.imageUrl && (
-              <img
-                src={product.imageUrl}
-                alt={product.name}
-                className="h-16 w-full rounded object-contain"
-              />
-            )}
-            <p className="line-clamp-2 text-[12px] font-medium text-text-primary">{product.name}</p>
-            <p className="text-[12px] text-text-secondary">{product.price}</p>
+            <p className="text-sm font-semibold text-text-primary">{product.name}</p>
+            <p className="mt-1 text-sm text-text-secondary line-clamp-2">
+              {product.storeName} · {product.price}
+              {product.rating ? ` · ★ ${product.rating}` : ''}
+            </p>
           </a>
         ))}
       </div>
 
-      <div className="border-t border-border-light px-3 py-2 text-[11px] text-text-tertiary">
+      {/* Bottom separator + disclaimer */}
+      <div className="border-t border-border-light pt-3 text-xs text-text-tertiary">
         {localize('com_ui_ads_disclaimer')}{' '}
-        <span className="cursor-pointer underline">{localize('com_ui_ads_learn_more')} ›</span>
+        <span className="cursor-pointer hover:text-text-secondary">
+          {localize('com_ui_ads_learn_more')} ›
+        </span>
       </div>
     </div>
   );

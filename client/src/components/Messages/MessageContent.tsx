@@ -72,18 +72,20 @@ export default function MessageContent(props: TMessageProps) {
             userMessageId={
               !message.isCreatedByUser ? (message.parentMessageId ?? undefined) : undefined
             }
+            sponsoredPanel={
+              !message.isCreatedByUser && showSponsoredPanel && adResult?.products ? (
+                <SponsoredPanel
+                  products={adResult.products}
+                  messageId={message.parentMessageId ?? ''}
+                  conversationId={conversation?.conversationId ?? ''}
+                  queryText={adResult.queryText}
+                  onEvent={(payload) => void postAdEvent(payload)}
+                />
+              ) : undefined
+            }
           />
         </div>
       </MessageContainer>
-      {!message.isCreatedByUser && showSponsoredPanel && adResult?.products && (
-        <SponsoredPanel
-          products={adResult.products}
-          messageId={message.parentMessageId ?? ''}
-          conversationId={conversation?.conversationId ?? ''}
-          queryText={adResult.queryText}
-          onEvent={(payload) => void postAdEvent(payload)}
-        />
-      )}
       <MultiMessage
         messageId={messageId}
         conversation={conversation}
