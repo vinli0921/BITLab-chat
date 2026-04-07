@@ -89,7 +89,7 @@ export default function SponsoredPanel({
             }
           >
             <p className="text-sm font-semibold text-text-primary">{product.name}</p>
-            <p className="mt-1 text-sm text-text-secondary line-clamp-2">
+            <p className="mt-1 line-clamp-2 text-sm text-text-secondary">
               {product.storeName} · {product.price}
               {product.rating ? ` · ★ ${product.rating}` : ''}
             </p>
