@@ -1,13 +1,17 @@
-import React, { useMemo } from 'react';
-import { useAtomValue } from 'jotai';
+import React, { useEffect, useMemo } from 'react';
+import { useAtomValue, useSetAtom } from 'jotai';
 import { useRecoilValue } from 'recoil';
 import type { TMessageContentParts } from 'librechat-data-provider';
 import type { TMessageProps, TMessageIcon } from '~/common';
 import { useMessageHelpers, useLocalize, useAttachments, useContentMetadata } from '~/hooks';
+import { useExperiment } from '~/context/ExperimentContext';
+import { useAdContext, postAdEvent } from '~/hooks/useAdContext';
 import { cn, getHeaderPrefixForScreenReader, getMessageAriaLabel } from '~/utils';
 import MessageIcon from '~/components/Chat/Messages/MessageIcon';
 import ContentParts from './Content/ContentParts';
+import { activeUserMessageIdAtom } from '~/store/experiment';
 import { fontSizeAtom } from '~/store/fontSize';
+import SponsoredPanel from './SponsoredPanel';
 import SiblingSwitch from './SiblingSwitch';
 import MultiMessage from './MultiMessage';
 import HoverButtons from './HoverButtons';
@@ -41,6 +45,28 @@ export default function Message(props: TMessageProps) {
   const fontSize = useAtomValue(fontSizeAtom);
   const maximizeChatSpace = useRecoilValue(store.maximizeChatSpace);
   const { children, messageId = null, isCreatedByUser } = message ?? {};
+
+  const { variant } = useExperiment();
+  const { getAdContext, getResult } = useAdContext();
+  const setActiveUserMessageId = useSetAtom(activeUserMessageIdAtom);
+
+  useEffect(() => {
+    if (!isCreatedByUser || !message?.text || !conversation?.conversationId) return;
+    void getAdContext({
+      userMessageId: message.messageId ?? '',
+      userMessageText: message.text,
+      conversationId: conversation.conversationId,
+    });
+  }, [isCreatedByUser, message?.messageId, message?.text, conversation?.conversationId, getAdContext]);
+
+  useEffect(() => {
+    if (isCreatedByUser || !message?.parentMessageId) return;
+    setActiveUserMessageId(message.parentMessageId);
+    return () => setActiveUserMessageId(null);
+  }, [isCreatedByUser, message?.parentMessageId, setActiveUserMessageId]);
+
+  const adResult = !isCreatedByUser ? getResult(message?.parentMessageId ?? '') : undefined;
+  const showSponsoredPanel = variant === 'sponsored-outside' && adResult?.showAd === true;
 
   const name = useMemo(() => {
     let result = '';
@@ -172,6 +198,15 @@ export default function Message(props: TMessageProps) {
                       isLast={isLast}
                     />
                   </SubRow>
+                )}
+                {!isCreatedByUser && showSponsoredPanel && adResult?.products && (
+                  <SponsoredPanel
+                    products={adResult.products}
+                    messageId={message.parentMessageId ?? ''}
+                    conversationId={conversation?.conversationId ?? ''}
+                    queryText=""
+                    onEvent={(payload) => void postAdEvent(payload)}
+                  />
                 )}
               </div>
             </div>
