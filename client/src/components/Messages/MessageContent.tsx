@@ -1,8 +1,6 @@
 import React, { useEffect } from 'react';
-import { useSetAtom } from 'jotai';
 import { useMessageProcess, useMemoizedChatContext } from '~/hooks';
 import type { TMessageProps } from '~/common';
-import { activeUserMessageIdAtom } from '~/store/experiment';
 import { useExperiment } from '~/context/ExperimentContext';
 import { useAdContext, postAdEvent } from '~/hooks/useAdContext';
 import SponsoredPanel from '~/components/Chat/Messages/SponsoredPanel';
@@ -36,13 +34,6 @@ export default function MessageContent(props: TMessageProps) {
 
   const { variant } = useExperiment();
   const { getAdContext, getResult } = useAdContext();
-  const setActiveUserMessageId = useSetAtom(activeUserMessageIdAtom);
-
-  useEffect(() => {
-    if (message?.isCreatedByUser || !message?.parentMessageId) return;
-    setActiveUserMessageId(message.parentMessageId);
-    return () => setActiveUserMessageId(null);
-  }, [message?.isCreatedByUser, message?.parentMessageId, setActiveUserMessageId]);
 
   useEffect(() => {
     if (!message?.isCreatedByUser || !message?.text || !conversation?.conversationId) return;

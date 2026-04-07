@@ -1,7 +1,6 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { useMessageProcess, useMemoizedChatContext } from '~/hooks';
 import type { TMessageProps } from '~/common';
-import { useAdContext } from '~/hooks/useAdContext';
 import MessageRender from './ui/MessageRender';
 import MultiMessage from './MultiMessage';
 
@@ -29,22 +28,6 @@ export default function Message(props: TMessageProps) {
   });
   const { message, currentEditId, setCurrentEditId } = props;
   const { chatContext, effectiveIsSubmitting } = useMemoizedChatContext(message, isSubmitting);
-  const { getAdContext } = useAdContext();
-
-  useEffect(() => {
-    if (!message?.isCreatedByUser || !message?.text || !conversation?.conversationId) return;
-    void getAdContext({
-      userMessageId: message.messageId ?? '',
-      userMessageText: message.text,
-      conversationId: conversation.conversationId,
-    });
-  }, [
-    message?.isCreatedByUser,
-    message?.messageId,
-    message?.text,
-    conversation?.conversationId,
-    getAdContext,
-  ]);
 
   if (!message || typeof message !== 'object') {
     return null;
