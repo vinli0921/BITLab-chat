@@ -1,7 +1,7 @@
 import type mongoose from 'mongoose';
 import type { IUser } from '@librechat/data-schemas';
-import { STUDY_ID, VARIANTS } from './constants';
 import type { Variant } from './constants';
+import { STUDY_ID, VARIANTS } from './constants';
 
 export async function ensureAssignment(
   userId: string,
