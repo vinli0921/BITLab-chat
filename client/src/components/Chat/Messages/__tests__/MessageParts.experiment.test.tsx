@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { createStore, Provider as JotaiProvider } from 'jotai';
+import type { TMessage, TMessageProps } from '~/common';
 import MessageParts from '../MessageParts';
 
 jest.mock('~/context/ExperimentContext', () => ({
@@ -84,7 +85,7 @@ const { useExperiment } = jest.requireMock('~/context/ExperimentContext');
 const { useAdContext } = jest.requireMock('~/hooks/useAdContext');
 const { useMessageHelpers, useAttachments, useContentMetadata } = jest.requireMock('~/hooks');
 
-const makeMessage = (overrides: Record<string, unknown> = {}) => ({
+const makeMessage = (overrides: Partial<TMessage> = {}): TMessage => ({
   messageId: 'msg-assistant-1',
   parentMessageId: 'msg-user-1',
   conversationId: 'test-convo-1',
@@ -94,17 +95,18 @@ const makeMessage = (overrides: Record<string, unknown> = {}) => ({
   endpoint: 'openAI',
   children: [],
   ...overrides,
-});
+} as TMessage);
 
-const makeProps = (messageOverrides: Record<string, unknown> = {}) => ({
-  message: makeMessage(messageOverrides),
+const makeProps = (overrides: Partial<TMessageProps> = {}): TMessageProps => ({
+  message: makeMessage(),
   siblingIdx: 0,
   siblingCount: 1,
   setSiblingIdx: jest.fn(),
   currentEditId: null,
   setCurrentEditId: jest.fn(),
   isSubmitting: false,
-});
+  ...overrides,
+} as TMessageProps);
 
 const mockConversation = {
   conversationId: 'convo-1',

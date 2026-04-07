@@ -1,21 +1,9 @@
 import React from 'react';
 import { Star } from 'lucide-react';
+import type { ProductCardData } from '@librechat/api';
 import { useLocalize } from '~/hooks';
 
 export const PRODUCT_CARD_MIME_TYPE = 'application/vnd.librechat.product-card+json';
-
-interface ProductCardData {
-  name: string;
-  price: string;
-  storeName: string;
-  buyUrl: string;
-  imageUrl?: string;
-  imageAlt?: string;
-  badge?: string;
-  originalPrice?: string;
-  rating?: number;
-  reviewCount?: number;
-}
 
 interface ProductCardProps {
   text: string;

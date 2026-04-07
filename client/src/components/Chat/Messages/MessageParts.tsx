@@ -4,12 +4,12 @@ import { useRecoilValue } from 'recoil';
 import type { TMessageContentParts } from 'librechat-data-provider';
 import type { TMessageProps, TMessageIcon } from '~/common';
 import { useMessageHelpers, useLocalize, useAttachments, useContentMetadata } from '~/hooks';
-import { useExperiment } from '~/context/ExperimentContext';
-import { useAdContext, postAdEvent } from '~/hooks/useAdContext';
 import { cn, getHeaderPrefixForScreenReader, getMessageAriaLabel } from '~/utils';
+import { useAdContext, postAdEvent } from '~/hooks/useAdContext';
 import MessageIcon from '~/components/Chat/Messages/MessageIcon';
-import ContentParts from './Content/ContentParts';
 import { activeUserMessageIdAtom } from '~/store/experiment';
+import { useExperiment } from '~/context/ExperimentContext';
+import ContentParts from './Content/ContentParts';
 import { fontSizeAtom } from '~/store/fontSize';
 import SponsoredPanel from './SponsoredPanel';
 import SiblingSwitch from './SiblingSwitch';
@@ -204,7 +204,7 @@ export default function Message(props: TMessageProps) {
                     products={adResult.products}
                     messageId={message.parentMessageId ?? ''}
                     conversationId={conversation?.conversationId ?? ''}
-                    queryText=""
+                    queryText={message.text ?? ''}
                     onEvent={(payload) => void postAdEvent(payload)}
                   />
                 )}
