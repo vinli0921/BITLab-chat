@@ -1,7 +1,7 @@
 import { useCallback } from 'react';
 import { useAtom } from 'jotai';
-import { adContextAtom, adContextFiredAtom } from '~/store/experiment';
 import type { AdContextResult } from '~/store/experiment';
+import { adContextAtom, adContextFiredAtom } from '~/store/experiment';
 
 interface AdContextParams {
   userMessageId: string;

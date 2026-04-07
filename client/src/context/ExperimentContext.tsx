@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useMemo } from 'react';
-import { useGetStartupConfig } from '~/data-provider';
 import type { Variant } from '@librechat/api';
+import { useGetStartupConfig } from '~/data-provider';
 
 interface ExperimentContextValue {
   variant: Variant | null;
