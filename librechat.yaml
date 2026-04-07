@@ -82,7 +82,7 @@ interface:
 
   endpointsMenu: true
   modelSelect: true
-  parameters: true
+  parameters: false
   sidePanel: true
   presets: true
   prompts:
@@ -109,7 +109,7 @@ interface:
     # - create: Allow users to create and manage new MCP servers
     # - share: Allow users to share MCP servers with other users
     # - public: Allow users to share MCP servers publicly (with everyone)
-    use: true
+    use: false
     share: false
     create: false
     public: false
@@ -242,6 +242,7 @@ mcpServers:
     type: stdio
     command: node
     args:
+    
       - "${MCP_PRODUCT_SEARCH_PATH}"
     env:
       SERPAPI_API_KEY: "${SERPAPI_API_KEY}"
@@ -536,6 +537,20 @@ endpoints:
 #       preset:
 #         endpoint: "openAI"
 #         model: "gpt-4o-mini"
+
+modelSpecs:
+  enforce: true
+  addedEndpoints:
+    - openAI
+  list:
+    - name: 'gpt-5.4'
+      label: 'GPT-5.4'
+      group: 'openAI'
+      preset:
+        endpoint: 'openAI'
+        model: 'gpt-5.4'
+      mcpServers:
+        - product-search
 
 # fileConfig:
 #   endpoints:
