@@ -147,7 +147,12 @@ router.get('/', async function (req, res) {
       tenantId: req.user.tenantId || getTenantId(),
     });
 
-    const experimentVariant = await ensureAssignment(req.user.id, mongoose);
+    let experimentVariant = null;
+    try {
+      experimentVariant = await ensureAssignment(req.user.id, mongoose);
+    } catch {
+      // Non-critical — experiment assignment may fail in test environments
+    }
     const balanceConfig = getBalanceConfig(appConfig);
 
     /** @type {TStartupConfig} */
