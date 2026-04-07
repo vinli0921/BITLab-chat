@@ -87,6 +87,7 @@ const { useMessageHelpers, useAttachments, useContentMetadata } = jest.requireMo
 const makeMessage = (overrides: Record<string, unknown> = {}) => ({
   messageId: 'msg-assistant-1',
   parentMessageId: 'msg-user-1',
+  conversationId: 'test-convo-1',
   text: 'Hello from assistant',
   content: [],
   isCreatedByUser: false,
