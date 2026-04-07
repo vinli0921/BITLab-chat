@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { useCallback, useRef } from 'react';
 import { useAtom } from 'jotai';
 import type { AdContextResult } from '~/store/experiment';
@@ -24,17 +25,11 @@ export function useAdContext(): UseAdContextReturn {
       firedRef.current.add(userMessageId);
 
       try {
-        const res = await fetch('/api/experiment/ad-context', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            messageText: userMessageText,
-            conversationId,
-            messageId: userMessageId,
-          }),
+        const { data } = await axios.post('/api/experiment/ad-context', {
+          messageText: userMessageText,
+          conversationId,
+          messageId: userMessageId,
         });
-        if (!res.ok) return;
-        const data = await res.json();
         if (data.showAd) {
           setAdContextMap((prev) => ({ ...prev, [userMessageId]: data as AdContextResult }));
         }
@@ -63,11 +58,7 @@ export async function postAdEvent(params: {
   queryText?: string;
 }): Promise<void> {
   try {
-    await fetch('/api/experiment/ad-event', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(params),
-    });
+    await axios.post('/api/experiment/ad-event', params);
   } catch {
     // Non-critical tracking — silently skip
   }

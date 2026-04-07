@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useAtomValue } from 'jotai';
 import { UIResourceRenderer } from '@mcp-ui/client';
 import type { UIResource } from 'librechat-data-provider';
-import { adContextAtom } from '~/store/experiment';
+import { adContextAtom, activeUserMessageIdAtom } from '~/store/experiment';
 import { useOptionalMessagesOperations } from '~/Providers';
 import ProductCard, { PRODUCT_CARD_MIME_TYPE } from './ProductCard';
 import { useExperiment } from '~/context/ExperimentContext';
@@ -24,7 +24,9 @@ const UIResourceCarousel: React.FC<UIResourceCarouselProps> = React.memo(
     const { ask } = useOptionalMessagesOperations();
     const { variant } = useExperiment();
     const adContextMap = useAtomValue(adContextAtom);
-    const adResult = userMessageId ? adContextMap[userMessageId] : undefined;
+    const atomUserMessageId = useAtomValue(activeUserMessageIdAtom);
+    const resolvedUserMessageId = userMessageId ?? atomUserMessageId ?? undefined;
+    const adResult = resolvedUserMessageId ? adContextMap[resolvedUserMessageId] : undefined;
 
     const sponsoredResources: SponsoredResource[] =
       variant === 'sponsored-inline' && adResult?.showAd
@@ -37,7 +39,7 @@ const UIResourceCarousel: React.FC<UIResourceCarouselProps> = React.memo(
           }))
         : [];
 
-    const allResources: UIResource[] = [...uiResources, ...sponsoredResources];
+    const allResources: UIResource[] = [...sponsoredResources, ...uiResources];
 
     const handleScroll = React.useCallback(() => {
       if (!scrollContainerRef.current) return;

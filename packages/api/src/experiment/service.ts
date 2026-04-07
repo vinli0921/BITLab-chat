@@ -1,4 +1,4 @@
-import type { IAdEvent, IConversation, AdEventType, ProductSource } from '@librechat/data-schemas';
+import type { IAdEvent, AdEventType, ProductSource } from '@librechat/data-schemas';
 import type mongoose from 'mongoose';
 import type { ProductCardData } from './ads';
 import type { Variant } from './constants';
@@ -41,25 +41,17 @@ export async function getAdContext(
 
   const products = getMockAds(2);
 
-  const Conversation = db.models.Conversation as mongoose.Model<IConversation>;
-
-  await Promise.all([
-    logAdEvent({
-      userId,
-      conversationId,
-      messageId,
-      studyId: STUDY_ID,
-      variant,
-      eventType: 'impression',
-      productSource: 'sponsored',
-      queryText: messageText,
-      db,
-    }),
-    Conversation.findOneAndUpdate(
-      { conversationId },
-      { $push: { 'experimentContext.adShownAt': messageId } },
-    ),
-  ]);
+  await logAdEvent({
+    userId,
+    conversationId,
+    messageId,
+    studyId: STUDY_ID,
+    variant,
+    eventType: 'impression',
+    productSource: 'sponsored',
+    queryText: messageText,
+    db,
+  });
 
   return { showAd: true, variant, products, queryText: messageText };
 }

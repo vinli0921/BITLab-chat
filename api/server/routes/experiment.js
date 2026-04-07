@@ -11,11 +11,13 @@ router.post('/ad-context', async (req, res) => {
   try {
     const { messageText, conversationId, messageId } = req.body;
     const variant = req.user.experimentAssignment?.variant ?? 'control';
+    console.log('[ad-context]', { variant, messageText, conversationId, messageId });
 
     if (!messageText || !conversationId || !messageId) {
       return res.status(400).json({ error: 'messageText, conversationId, and messageId required' });
     }
 
+    console.log('[ad-context] calling getAdContext...');
     const result = await getAdContext({
       userId: req.user.id,
       variant,
@@ -24,6 +26,7 @@ router.post('/ad-context', async (req, res) => {
       messageText,
       db: mongoose,
     });
+    console.log('[ad-context] result:', JSON.stringify(result));
 
     return res.status(200).json(result);
   } catch (err) {

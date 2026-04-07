@@ -9,3 +9,5 @@ export interface AdContextResult {
 }
 
 export const adContextAtom = atom<Record<string, AdContextResult>>({});
+
+export const activeUserMessageIdAtom = atom<string | null>(null);

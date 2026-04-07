@@ -24,6 +24,7 @@ type ContentRenderProps = {
   isSubmitting?: boolean;
   /** Stable context object from wrapper — avoids ChatContext subscription inside memo */
   chatContext: TMessageChatContext;
+  userMessageId?: string;
 } & Pick<
   TMessageProps,
   'currentEditId' | 'setCurrentEditId' | 'siblingIdx' | 'setSiblingIdx' | 'siblingCount'
@@ -53,6 +54,9 @@ function areContentRenderPropsEqual(prev: ContentRenderProps, next: ContentRende
     return false;
   }
   if (prev.setCurrentEditId !== next.setCurrentEditId) {
+    return false;
+  }
+  if (prev.userMessageId !== next.userMessageId) {
     return false;
   }
 
@@ -91,6 +95,7 @@ const ContentRender = memo(function ContentRender({
   setCurrentEditId,
   isSubmitting = false,
   chatContext,
+  userMessageId,
 }: ContentRenderProps) {
   const localize = useLocalize();
   const { attachments, searchResults } = useAttachments({
@@ -222,6 +227,7 @@ const ContentRender = memo(function ContentRender({
               isCreatedByUser={msg.isCreatedByUser}
               conversationId={conversation?.conversationId}
               content={msg.content as Array<TMessageContentParts | undefined>}
+              userMessageId={userMessageId}
             />
           </div>
           {hasNoChildren && isSubmitting ? (
