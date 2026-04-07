@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react';
-import { useAtomValue, useSetAtom } from 'jotai';
+import { useAtomValue } from 'jotai';
 import { useRecoilValue } from 'recoil';
 import type { TMessageContentParts } from 'librechat-data-provider';
 import type { TMessageProps, TMessageIcon } from '~/common';
@@ -7,7 +7,6 @@ import { useMessageHelpers, useLocalize, useAttachments, useContentMetadata } fr
 import { cn, getHeaderPrefixForScreenReader, getMessageAriaLabel } from '~/utils';
 import { useAdContext, postAdEvent } from '~/hooks/useAdContext';
 import MessageIcon from '~/components/Chat/Messages/MessageIcon';
-import { activeUserMessageIdAtom } from '~/store/experiment';
 import { useExperiment } from '~/context/ExperimentContext';
 import ContentParts from './Content/ContentParts';
 import { fontSizeAtom } from '~/store/fontSize';
@@ -48,7 +47,6 @@ export default function Message(props: TMessageProps) {
 
   const { variant } = useExperiment();
   const { getAdContext, getResult } = useAdContext();
-  const setActiveUserMessageId = useSetAtom(activeUserMessageIdAtom);
 
   useEffect(() => {
     if (!isCreatedByUser || !message?.text || !conversation?.conversationId) return;
@@ -58,12 +56,6 @@ export default function Message(props: TMessageProps) {
       conversationId: conversation.conversationId,
     });
   }, [isCreatedByUser, message?.messageId, message?.text, conversation?.conversationId, getAdContext]);
-
-  useEffect(() => {
-    if (isCreatedByUser || !message?.parentMessageId) return;
-    setActiveUserMessageId(message.parentMessageId);
-    return () => setActiveUserMessageId(null);
-  }, [isCreatedByUser, message?.parentMessageId, setActiveUserMessageId]);
 
   const adResult = !isCreatedByUser ? getResult(message?.parentMessageId ?? '') : undefined;
   const showSponsoredPanel = variant === 'sponsored-outside' && adResult?.showAd === true;
@@ -173,6 +165,7 @@ export default function Message(props: TMessageProps) {
                     conversationId={conversation?.conversationId}
                     isLatestMessage={messageId === latestMessageId}
                     content={message.content as Array<TMessageContentParts | undefined>}
+                    userMessageId={!message.isCreatedByUser ? (message.parentMessageId ?? undefined) : undefined}
                   />
                 </div>
                 {isLast && isSubmitting ? (
@@ -204,7 +197,7 @@ export default function Message(props: TMessageProps) {
                     products={adResult.products}
                     messageId={message.parentMessageId ?? ''}
                     conversationId={conversation?.conversationId ?? ''}
-                    queryText={message.text ?? ''}
+                    queryText={adResult.queryText}
                     onEvent={(payload) => void postAdEvent(payload)}
                   />
                 )}

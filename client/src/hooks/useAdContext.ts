@@ -1,7 +1,7 @@
-import { useCallback } from 'react';
+import { useCallback, useRef } from 'react';
 import { useAtom } from 'jotai';
 import type { AdContextResult } from '~/store/experiment';
-import { adContextAtom, adContextFiredAtom } from '~/store/experiment';
+import { adContextAtom } from '~/store/experiment';
 
 interface AdContextParams {
   userMessageId: string;
@@ -16,12 +16,12 @@ interface UseAdContextReturn {
 
 export function useAdContext(): UseAdContextReturn {
   const [adContextMap, setAdContextMap] = useAtom(adContextAtom);
-  const [firedSet, setFiredSet] = useAtom(adContextFiredAtom);
+  const firedRef = useRef(new Set<string>());
 
   const getAdContext = useCallback(
     async ({ userMessageId, userMessageText, conversationId }: AdContextParams) => {
-      if (firedSet.has(userMessageId)) return;
-      setFiredSet((prev) => new Set([...prev, userMessageId]));
+      if (firedRef.current.has(userMessageId)) return;
+      firedRef.current.add(userMessageId);
 
       try {
         const res = await fetch('/api/experiment/ad-context', {
@@ -42,7 +42,7 @@ export function useAdContext(): UseAdContextReturn {
         // Non-critical — silently skip network errors
       }
     },
-    [firedSet, setFiredSet, setAdContextMap],
+    [setAdContextMap],
   );
 
   const getResult = useCallback(

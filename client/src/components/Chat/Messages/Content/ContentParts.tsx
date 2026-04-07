@@ -27,6 +27,7 @@ type PartWithContextProps = {
   isCreatedByUser: boolean;
   isLast: boolean;
   partAttachments: TAttachment[] | undefined;
+  userMessageId?: string;
 };
 
 const PartWithContext = memo(function PartWithContext({
@@ -41,6 +42,7 @@ const PartWithContext = memo(function PartWithContext({
   isCreatedByUser,
   isLast,
   partAttachments,
+  userMessageId,
 }: PartWithContextProps) {
   const contextValue = useMemo(
     () => ({
@@ -65,6 +67,7 @@ const PartWithContext = memo(function PartWithContext({
         isCreatedByUser={isCreatedByUser}
         isLast={isLastPart}
         showCursor={isLastPart && isLast}
+        userMessageId={userMessageId}
       />
     </MessageContext.Provider>
   );
@@ -87,6 +90,7 @@ type ContentPartsProps = {
     | ((value: number) => void | React.Dispatch<React.SetStateAction<number>>)
     | null
     | undefined;
+  userMessageId?: string;
 };
 
 /**
@@ -109,6 +113,7 @@ const ContentParts = memo(function ContentParts({
   conversationId,
   isCreatedByUser,
   isLatestMessage,
+  userMessageId,
 }: ContentPartsProps) {
   const attachmentMap = useMemo(() => mapAttachments(attachments ?? []), [attachments]);
   const effectiveIsSubmitting = isLatestMessage ? isSubmitting : false;
@@ -130,6 +135,7 @@ const ContentParts = memo(function ContentParts({
           nextType={content?.[idx + 1]?.type}
           isSubmitting={effectiveIsSubmitting}
           partAttachments={attachmentMap[toolCallId]}
+          userMessageId={userMessageId}
         />
       );
     },
@@ -142,6 +148,7 @@ const ContentParts = memo(function ContentParts({
       isLast,
       isLatestMessage,
       messageId,
+      userMessageId,
     ],
   );
 

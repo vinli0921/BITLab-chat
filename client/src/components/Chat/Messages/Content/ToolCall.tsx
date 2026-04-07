@@ -27,6 +27,7 @@ export default function ToolCall({
   output,
   attachments,
   auth,
+  userMessageId,
 }: {
   initialProgress: number;
   isLast?: boolean;
@@ -36,6 +37,7 @@ export default function ToolCall({
   output?: string | null;
   attachments?: TAttachment[];
   auth?: string;
+  userMessageId?: string;
 }) {
   const localize = useLocalize();
   const autoExpand = useRecoilValue(store.autoExpandTools);
@@ -231,7 +233,7 @@ export default function ToolCall({
         <div className="overflow-hidden" ref={expandRef}>
           {hasInfo && (
             <div className="my-2 overflow-hidden rounded-lg border border-border-light bg-surface-secondary">
-              <ToolCallInfo input={args ?? ''} output={output} attachments={attachments} />
+              <ToolCallInfo input={args ?? ''} output={output} attachments={attachments} userMessageId={userMessageId} />
             </div>
           )}
         </div>

@@ -1,5 +1,4 @@
 import type { IAdEvent, IConversation, AdEventType, ProductSource } from '@librechat/data-schemas';
-import type { Types } from 'mongoose';
 import type mongoose from 'mongoose';
 import type { ProductCardData } from './ads';
 import type { Variant } from './constants';
@@ -24,6 +23,7 @@ interface AdContextWithAd {
   showAd: true;
   variant: Variant;
   products: ProductCardData[];
+  queryText: string;
 }
 
 export async function getAdContext(
@@ -42,13 +42,11 @@ export async function getAdContext(
   const products = getMockAds(2);
 
   const Conversation = db.models.Conversation as mongoose.Model<IConversation>;
-  const convo = await Conversation.findOne({ conversationId }, { _id: 1 }).lean();
-  const conversationObjectId = convo?._id as Types.ObjectId | undefined;
 
   await Promise.all([
     logAdEvent({
       userId,
-      conversationId: conversationObjectId?.toString() ?? conversationId,
+      conversationId,
       messageId,
       studyId: STUDY_ID,
       variant,
@@ -63,7 +61,7 @@ export async function getAdContext(
     ),
   ]);
 
-  return { showAd: true, variant, products };
+  return { showAd: true, variant, products, queryText: messageText };
 }
 
 interface LogAdEventParams {

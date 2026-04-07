@@ -144,7 +144,7 @@ describe('MessageParts experiment integration', () => {
     useExperiment.mockReturnValue({ variant: 'control' });
     useAdContext.mockReturnValue({
       getAdContext: jest.fn(),
-      getResult: jest.fn(() => ({ showAd: true, variant: 'control', products: [{ name: 'Product A', price: '$10', storeName: 'Store', buyUrl: 'https://example.com' }] })),
+      getResult: jest.fn(() => ({ showAd: true, variant: 'control', queryText: 'test query', products: [{ name: 'Product A', price: '$10', storeName: 'Store', buyUrl: 'https://example.com' }] })),
     });
 
     const store = createStore();
@@ -164,6 +164,7 @@ describe('MessageParts experiment integration', () => {
       getResult: jest.fn(() => ({
         showAd: true as const,
         variant: 'sponsored-outside',
+        queryText: 'test query',
         products: [{ name: 'Sponsored Widget', price: '$25', storeName: 'AdCo', buyUrl: 'https://adco.com' }],
       })),
     });

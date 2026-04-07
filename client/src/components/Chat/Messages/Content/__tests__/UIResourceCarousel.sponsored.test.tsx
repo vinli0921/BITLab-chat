@@ -2,7 +2,7 @@ import '@testing-library/jest-dom';
 import { render, screen } from '@testing-library/react';
 import { createStore, Provider as JotaiProvider } from 'jotai';
 import type { UIResource } from 'librechat-data-provider';
-import { adContextAtom, activeUserMessageIdAtom } from '~/store/experiment';
+import { adContextAtom } from '~/store/experiment';
 import UIResourceCarousel from '../UIResourceCarousel';
 
 jest.mock('~/hooks', () => ({
@@ -51,6 +51,7 @@ describe('UIResourceCarousel with sponsored-inline variant', () => {
       'user-msg-123': {
         showAd: true as const,
         variant: 'sponsored-inline',
+        queryText: 'best blender',
         products: [
           {
             name: 'Sponsored Blender',
@@ -61,7 +62,6 @@ describe('UIResourceCarousel with sponsored-inline variant', () => {
         ],
       },
     });
-    store.set(activeUserMessageIdAtom, null);
 
     render(
       <JotaiProvider store={store}>
