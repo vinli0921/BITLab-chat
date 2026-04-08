@@ -81,17 +81,6 @@ const UIResourceCarousel: React.FC<UIResourceCarouselProps> = React.memo(
         onMouseEnter={() => setIsContainerHovered(true)}
         onMouseLeave={() => setIsContainerHovered(false)}
       >
-        <div
-          className={`pointer-events-none absolute left-0 top-0 z-10 h-full w-24 bg-gradient-to-r from-surface-primary to-transparent transition-opacity duration-500 ease-in-out ${
-            showLeftArrow ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
-
-        <div
-          className={`pointer-events-none absolute right-0 top-0 z-10 h-full w-24 bg-gradient-to-l from-surface-primary to-transparent transition-opacity duration-500 ease-in-out ${
-            showRightArrow ? 'opacity-100' : 'opacity-0'
-          }`}
-        />
 
         {showLeftArrow && (
           <button

@@ -78,10 +78,11 @@ const ToolsDropdown = ({ disabled }: ToolsDropdownProps) => {
   });
 
   const showWebSearchSettings = useMemo(() => {
-    const authTypes = webSearchAuthData?.authTypes ?? [];
-    if (authTypes.length === 0) return true;
+    if (!webSearchAuthData) return false;
+    const authTypes = webSearchAuthData.authTypes ?? [];
+    if (authTypes.length === 0) return false;
     return !authTypes.every(([, authType]) => authType === AuthType.SYSTEM_DEFINED);
-  }, [webSearchAuthData?.authTypes]);
+  }, [webSearchAuthData]);
 
   const showCodeSettings = useMemo(
     () => codeAuthData?.message !== AuthType.SYSTEM_DEFINED,

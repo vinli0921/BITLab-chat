@@ -546,9 +546,11 @@ modelSpecs:
     - name: 'gpt-5.4'
       label: 'GPT-5.4'
       group: 'openAI'
+      webSearch: true
       preset:
         endpoint: 'openAI'
         model: 'gpt-5.4'
+        web_search: true
       mcpServers:
         - product-search
 

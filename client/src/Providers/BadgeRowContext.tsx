@@ -210,18 +210,13 @@ export default function BadgeRowProvider({
 
   /** WebSearch hooks */
   const searchApiKeyForm = useSearchApiKeyForm({});
-  const { setIsDialogOpen: setWebSearchDialogOpen } = searchApiKeyForm;
 
   const webSearch = useToolToggle({
     conversationId,
     storageContextKey,
     toolKey: Tools.web_search,
     localStorageKey: LocalStorageKeys.LAST_WEB_SEARCH_TOGGLE_,
-    setIsDialogOpen: setWebSearchDialogOpen,
-    authConfig: {
-      toolId: Tools.web_search,
-      queryOptions: { retry: 1 },
-    },
+    isAuthenticated: true,
   });
 
   /** FileSearch hook */
