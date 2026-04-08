@@ -2,7 +2,9 @@ import React from 'react';
 import { UIResourceRenderer } from '@mcp-ui/client';
 import { useOptionalMessagesConversation, useOptionalMessagesOperations } from '~/Providers';
 import { useConversationUIResources } from '~/hooks/Messages/useConversationUIResources';
-import ProductCard, { PRODUCT_CARD_MIME_TYPE } from '~/components/Chat/Messages/Content/ProductCard';
+import ProductCard, {
+  PRODUCT_CARD_MIME_TYPE,
+} from '~/components/Chat/Messages/Content/ProductCard';
 import { handleUIAction } from '~/utils';
 import { useLocalize } from '~/hooks';
 
@@ -37,7 +39,10 @@ export function MCPUIResource(props: MCPUIResourceProps) {
 
   if (uiResource.mimeType === PRODUCT_CARD_MIME_TYPE) {
     return (
-      <span className="mx-1 inline-block align-middle" style={{ width: '230px', minHeight: '360px' }}>
+      <span
+        className="mx-1 inline-block align-middle"
+        style={{ width: '230px', minHeight: '360px' }}
+      >
         <ProductCard text={uiResource.text ?? ''} />
       </span>
     );

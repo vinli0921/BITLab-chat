@@ -236,15 +236,12 @@ describe('UIResourceCarousel', () => {
     });
   });
 
-  it('shows correct gradient overlays based on scroll position', () => {
-    const { container } = render(<UIResourceCarousel uiResources={mockUIResources} />);
+  it('shows correct navigation arrows based on scroll position', () => {
+    render(<UIResourceCarousel uiResources={mockUIResources} />);
 
-    // At start, left gradient should be hidden, right should be visible
-    const leftGradient = container.querySelector('.bg-gradient-to-r');
-    const rightGradient = container.querySelector('.bg-gradient-to-l');
-
-    expect(leftGradient).toHaveClass('opacity-0');
-    expect(rightGradient).toHaveClass('opacity-100');
+    // At start, left arrow should not exist, right arrow should be visible
+    expect(screen.queryByLabelText('Scroll left')).not.toBeInTheDocument();
+    expect(screen.getByLabelText('Scroll right')).toBeInTheDocument();
   });
 
   it('cleans up event listeners on unmount', () => {

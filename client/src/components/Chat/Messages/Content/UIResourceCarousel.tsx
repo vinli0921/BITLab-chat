@@ -81,7 +81,6 @@ const UIResourceCarousel: React.FC<UIResourceCarouselProps> = React.memo(
         onMouseEnter={() => setIsContainerHovered(true)}
         onMouseLeave={() => setIsContainerHovered(false)}
       >
-
         {showLeftArrow && (
           <button
             type="button"
