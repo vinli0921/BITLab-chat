@@ -39,10 +39,7 @@ export function MCPUIResource(props: MCPUIResourceProps) {
 
   if (uiResource.mimeType === PRODUCT_CARD_MIME_TYPE) {
     return (
-      <span
-        className="mx-1 inline-block align-middle"
-        style={{ width: '230px', minHeight: '360px' }}
-      >
+      <span className="mx-1 inline-block w-[calc((100%-2rem)/3)] align-middle">
         <ProductCard text={uiResource.text ?? ''} />
       </span>
     );

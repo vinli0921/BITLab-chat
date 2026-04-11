@@ -28,17 +28,17 @@ export default function ProductCard({ text, sponsored = false }: ProductCardProp
       href={product.buyUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className="group flex h-full flex-col overflow-hidden rounded-xl"
+      className="group flex h-full flex-col overflow-hidden rounded-xl no-underline"
     >
-      <div className="aspect-square w-full overflow-hidden rounded-xl bg-surface-tertiary">
+      <div className="relative aspect-[13/16] w-full overflow-hidden rounded-xl bg-[#F3F3F3] dark:bg-[#F3F3F3]">
         {product.imageUrl ? (
           <img
             src={product.imageUrl}
             alt={product.imageAlt ?? product.name}
-            className="h-full w-full object-contain p-3"
+            className="absolute inset-0 m-0 h-full w-full object-cover object-top mix-blend-darken"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-text-secondary">
+          <div className="flex h-full items-center justify-center text-gray-400">
             <svg
               className="h-12 w-12 opacity-30"
               fill="none"
@@ -56,24 +56,25 @@ export default function ProductCard({ text, sponsored = false }: ProductCardProp
         )}
       </div>
 
-      <div className="flex flex-1 flex-col gap-0.5 pt-2.5">
+      <div className="flex flex-col gap-1 px-1 pt-2">
         {sponsored && (
-          <span className="mb-0.5 text-[11px] text-text-secondary">
-            {localize('com_ui_sponsored')}
-          </span>
+          <span className="text-[11px] text-text-secondary">{localize('com_ui_sponsored')}</span>
         )}
-        <p className="line-clamp-2 text-sm font-medium leading-snug text-text-primary">
-          {product.name}
-        </p>
+        <p className="line-clamp-2 text-sm font-medium text-text-primary">{product.name}</p>
         <span className="text-sm text-text-secondary">
           {product.price}
-          {product.storeName && ` · ${product.storeName}`}
+          {product.storeName && (
+            <>
+              <span className="mx-0.5">&bull;</span>
+              {product.storeName}
+            </>
+          )}
         </span>
         {product.rating != null && (
-          <div className="mt-auto flex items-center gap-1 pt-0.5">
-            <Star className="h-3.5 w-3.5 fill-text-secondary text-text-secondary" />
-            <span className="text-sm text-text-secondary">{product.rating}</span>
-          </div>
+          <span className="flex items-center gap-0.5 text-sm text-text-secondary">
+            <Star className="mb-[0.1875rem] inline-block h-3 w-3 fill-current" />
+            {product.rating}
+          </span>
         )}
       </div>
     </a>
