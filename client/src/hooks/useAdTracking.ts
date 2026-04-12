@@ -1,4 +1,4 @@
-import { useRef, useCallback, useEffect } from 'react';
+import { useRef, useCallback } from 'react';
 import { postAdEvent } from '~/hooks/useAdContext';
 
 interface AdTrackingParams {
@@ -10,72 +10,97 @@ interface AdTrackingParams {
 /**
  * Provides viewport (IntersectionObserver) and hover tracking for ad elements.
  * Attach `trackingRef` to the ad container element.
- * Calls postAdEvent for viewport_enter/viewport_exit and hover_start/hover_end.
+ * Uses a callback ref so the observer is attached/detached when the element mounts/unmounts,
+ * even if the element renders conditionally after the hook's first call.
  */
 export function useAdTracking({ messageId, conversationId, queryText }: AdTrackingParams) {
-  const trackingRef = useRef<HTMLDivElement>(null);
   const enterTimeRef = useRef<number | null>(null);
   const hoverStartRef = useRef<number | null>(null);
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
-  const basePayload = {
-    productSource: 'sponsored' as const,
-    conversationId,
-    messageId,
-    queryText,
-  };
-
-  const onViewportEnter = useCallback(() => {
-    enterTimeRef.current = Date.now();
-    postAdEvent({ ...basePayload, eventType: 'viewport_enter' });
-  }, [messageId, conversationId, queryText]);
-
-  const onViewportExit = useCallback(() => {
+  const fireExit = useCallback(() => {
     const dwellTimeMs =
       enterTimeRef.current != null ? Date.now() - enterTimeRef.current : undefined;
     enterTimeRef.current = null;
-    postAdEvent({ ...basePayload, eventType: 'viewport_exit', dwellTimeMs });
+    postAdEvent({
+      productSource: 'sponsored',
+      conversationId,
+      messageId,
+      queryText,
+      eventType: 'viewport_exit',
+      dwellTimeMs,
+    });
   }, [messageId, conversationId, queryText]);
 
-  const onHoverStart = useCallback(() => {
-    hoverStartRef.current = Date.now();
-    postAdEvent({ ...basePayload, eventType: 'hover_start' });
-  }, [messageId, conversationId, queryText]);
-
-  const onHoverEnd = useCallback(() => {
+  const fireHoverEnd = useCallback(() => {
     const hoverTimeMs =
       hoverStartRef.current != null ? Date.now() - hoverStartRef.current : undefined;
     hoverStartRef.current = null;
-    postAdEvent({ ...basePayload, eventType: 'hover_end', hoverTimeMs });
+    postAdEvent({
+      productSource: 'sponsored',
+      conversationId,
+      messageId,
+      queryText,
+      eventType: 'hover_end',
+      hoverTimeMs,
+    });
   }, [messageId, conversationId, queryText]);
 
-  useEffect(() => {
-    const el = trackingRef.current;
-    if (!el) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        for (const entry of entries) {
-          if (entry.isIntersecting) {
-            onViewportEnter();
-          } else if (enterTimeRef.current != null) {
-            onViewportExit();
-          }
+  const trackingRef = useCallback(
+    (el: HTMLDivElement | null) => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+        if (enterTimeRef.current != null) {
+          fireExit();
         }
-      },
-      { threshold: 0.5 },
-    );
-
-    observer.observe(el);
-
-    return () => {
-      observer.disconnect();
-      if (enterTimeRef.current != null) {
-        onViewportExit();
+        if (hoverStartRef.current != null) {
+          fireHoverEnd();
+        }
+        observerRef.current = null;
       }
-    };
-  }, [onViewportEnter, onViewportExit]);
+
+      if (!el) {
+        return;
+      }
+
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            if (entry.isIntersecting) {
+              enterTimeRef.current = Date.now();
+              postAdEvent({
+                productSource: 'sponsored',
+                conversationId,
+                messageId,
+                queryText,
+                eventType: 'viewport_enter',
+              });
+            } else if (enterTimeRef.current != null) {
+              fireExit();
+            }
+          }
+        },
+        { threshold: 0.5 },
+      );
+
+      observer.observe(el);
+      observerRef.current = observer;
+    },
+    [messageId, conversationId, queryText, fireExit, fireHoverEnd],
+  );
+
+  const onHoverStart = useCallback(() => {
+    hoverStartRef.current = Date.now();
+    postAdEvent({
+      productSource: 'sponsored',
+      conversationId,
+      messageId,
+      queryText,
+      eventType: 'hover_start',
+    });
+  }, [messageId, conversationId, queryText]);
+
+  const onHoverEnd = fireHoverEnd;
 
   return { trackingRef, onHoverStart, onHoverEnd };
 }
