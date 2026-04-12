@@ -22,15 +22,30 @@ jest.mock('~/Providers', () => ({
   useOptionalMessagesOperations: () => ({
     ask: jest.fn(),
   }),
+  useOptionalMessagesConversation: () => ({
+    conversationId: 'test-convo',
+  }),
 }));
 
 jest.mock('~/context/ExperimentContext', () => ({
   useExperiment: () => ({ variant: 'sponsored-inline' }),
 }));
 
+jest.mock('~/hooks/useAdContext', () => ({
+  postAdEvent: jest.fn(),
+}));
+
 jest.mock('~/utils', () => ({
   handleUIAction: jest.fn(),
 }));
+
+beforeAll(() => {
+  global.IntersectionObserver = jest.fn().mockImplementation(() => ({
+    observe: jest.fn(),
+    disconnect: jest.fn(),
+    unobserve: jest.fn(),
+  })) as unknown as typeof IntersectionObserver;
+});
 
 describe('UIResourceCarousel with sponsored-inline variant', () => {
   it('renders sponsored card alongside organic results', () => {

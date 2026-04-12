@@ -22,6 +22,8 @@ const adEventSchema = new Schema<IAdEvent>(
     productId: { type: String },
     productName: { type: String },
     queryText: { type: String, required: true },
+    dwellTimeMs: { type: Number },
+    hoverTimeMs: { type: Number },
     timestamp: { type: Date, required: true, default: () => new Date() },
   },
   { timestamps: false },

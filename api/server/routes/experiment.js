@@ -40,6 +40,8 @@ router.post('/ad-event', async (req, res) => {
       conversationId,
       messageId,
       queryText,
+      dwellTimeMs,
+      hoverTimeMs,
     } = req.body;
     const variant = req.user.experimentAssignment?.variant ?? 'control';
     const studyId = req.user.experimentAssignment?.studyId ?? 'study-1';
@@ -61,6 +63,8 @@ router.post('/ad-event', async (req, res) => {
       productId,
       productName,
       queryText: queryText ?? '',
+      dwellTimeMs,
+      hoverTimeMs,
       db: mongoose,
     });
 

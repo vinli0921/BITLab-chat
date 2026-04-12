@@ -29,6 +29,9 @@ jest.mock('~/Providers', () => ({
   useOptionalMessagesOperations: () => ({
     ask: mockAsk,
   }),
+  useOptionalMessagesConversation: () => ({
+    conversationId: 'test-convo',
+  }),
 }));
 
 jest.mock('~/context/ExperimentContext', () => ({

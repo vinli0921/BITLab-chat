@@ -1,5 +1,6 @@
 import React from 'react';
 import type { ProductCardData } from '@librechat/api';
+import { useAdTracking } from '~/hooks/useAdTracking';
 import { useLocalize } from '~/hooks';
 
 interface AdEventPayload {
@@ -28,6 +29,11 @@ export default function SponsoredPanel({
   onEvent,
 }: SponsoredPanelProps) {
   const localize = useLocalize();
+  const { trackingRef, onHoverStart, onHoverEnd } = useAdTracking({
+    messageId,
+    conversationId,
+    queryText,
+  });
 
   if (!products.length) return null;
 
@@ -35,7 +41,7 @@ export default function SponsoredPanel({
   const brandInitial = brandName.charAt(0).toUpperCase();
 
   return (
-    <div className="mt-3">
+    <div ref={trackingRef} className="mt-3" onMouseEnter={onHoverStart} onMouseLeave={onHoverEnd}>
       {/* Top separator */}
       <div className="mb-4 border-t border-border-light" />
 
