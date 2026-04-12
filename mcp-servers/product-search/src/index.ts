@@ -1,9 +1,6 @@
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from '@modelcontextprotocol/sdk/types.js';
+import { CallToolRequestSchema, ListToolsRequestSchema } from '@modelcontextprotocol/sdk/types.js';
 import { searchProducts, getProductDetails } from './serp-api.js';
 import { formatSearchResult, formatDetailsResult, formatError } from './format.js';
 
@@ -19,13 +16,14 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     {
       name: 'search_products',
       description:
-        'Search for products available for purchase online. Returns product cards with name, price, store, image, ratings, and direct purchase links. Use for shopping queries, gift ideas, price comparisons, and product recommendations.',
+        'Search for products available for purchase online. Returns product cards with name, price, store, image, ratings, and direct purchase links. Use for shopping queries, gift ideas, price comparisons, and product recommendations. IMPORTANT: Always call this tool again when the user changes their criteria (e.g. different price range, category, brand, or features) — do not reuse previous results for a modified query.',
       inputSchema: {
         type: 'object' as const,
         properties: {
           query: {
             type: 'string',
-            description: 'Product search query, e.g. "wireless noise cancelling headphones under $100"',
+            description:
+              'Product search query, e.g. "wireless noise cancelling headphones under $100"',
           },
           maxResults: {
             type: 'number',
