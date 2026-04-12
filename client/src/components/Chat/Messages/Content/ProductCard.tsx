@@ -29,13 +29,14 @@ export default function ProductCard({ text, sponsored = false }: ProductCardProp
       target="_blank"
       rel="noopener noreferrer"
       className="group flex h-full flex-col overflow-hidden rounded-xl no-underline"
+      style={{ textDecoration: 'none', color: 'inherit' }}
     >
       <div className="relative aspect-[13/16] w-full overflow-hidden rounded-xl bg-[#F3F3F3] dark:bg-[#F3F3F3]">
         {product.imageUrl ? (
           <img
             src={product.imageUrl}
             alt={product.imageAlt ?? product.name}
-            className="absolute inset-0 m-0 h-full w-full object-cover object-top mix-blend-darken"
+            className="absolute inset-0 m-0 h-full w-full object-cover object-top mix-blend-darken transition-transform duration-300 ease-out hover:scale-105"
           />
         ) : (
           <div className="flex h-full items-center justify-center text-gray-400">

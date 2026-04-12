@@ -112,4 +112,58 @@ describe('AdEvent model', () => {
       }),
     ).rejects.toThrow();
   });
+
+  it('saves viewport_exit with dwellTimeMs', async () => {
+    const AdEvent = mongoose.models.AdEvent;
+    const event = await AdEvent.create({
+      userId: new mongoose.Types.ObjectId(),
+      conversationId: 'convo-1',
+      messageId: 'msg-dwell',
+      studyId: 'study-1',
+      variant: 'sponsored-inline',
+      eventType: 'viewport_exit',
+      productSource: 'sponsored',
+      queryText: 'best laptop',
+      dwellTimeMs: 4500,
+    });
+    const found = await AdEvent.findById(event._id).lean<IAdEvent>();
+    expect(found?.eventType).toBe('viewport_exit');
+    expect(found?.dwellTimeMs).toBe(4500);
+    expect(found?.hoverTimeMs).toBeUndefined();
+  });
+
+  it('saves hover_end with hoverTimeMs', async () => {
+    const AdEvent = mongoose.models.AdEvent;
+    const event = await AdEvent.create({
+      userId: new mongoose.Types.ObjectId(),
+      conversationId: 'convo-1',
+      messageId: 'msg-hover',
+      studyId: 'study-1',
+      variant: 'sponsored-outside',
+      eventType: 'hover_end',
+      productSource: 'sponsored',
+      queryText: 'best blender',
+      hoverTimeMs: 1200,
+    });
+    const found = await AdEvent.findById(event._id).lean<IAdEvent>();
+    expect(found?.eventType).toBe('hover_end');
+    expect(found?.hoverTimeMs).toBe(1200);
+  });
+
+  it('accepts all new event types', async () => {
+    const AdEvent = mongoose.models.AdEvent;
+    const base = {
+      userId: new mongoose.Types.ObjectId(),
+      conversationId: 'convo-1',
+      messageId: 'msg-types',
+      studyId: 'study-1',
+      variant: 'sponsored-inline',
+      productSource: 'sponsored' as const,
+      queryText: 'test',
+    };
+    for (const eventType of ['viewport_enter', 'viewport_exit', 'hover_start', 'hover_end']) {
+      const event = await AdEvent.create({ ...base, eventType });
+      expect(event.eventType).toBe(eventType);
+    }
+  });
 });

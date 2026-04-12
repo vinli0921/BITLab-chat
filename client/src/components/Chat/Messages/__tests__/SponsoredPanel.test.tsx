@@ -2,6 +2,21 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import SponsoredPanel from '../SponsoredPanel';
 import type { ProductCardData } from '@librechat/api';
 
+const mockObserve = jest.fn();
+const mockDisconnect = jest.fn();
+
+beforeAll(() => {
+  global.IntersectionObserver = jest.fn().mockImplementation(() => ({
+    observe: mockObserve,
+    disconnect: mockDisconnect,
+    unobserve: jest.fn(),
+  })) as unknown as typeof IntersectionObserver;
+});
+
+jest.mock('~/hooks/useAdContext', () => ({
+  postAdEvent: jest.fn(),
+}));
+
 jest.mock('~/hooks', () => ({
   useLocalize: () => (key: string) => key,
 }));

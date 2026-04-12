@@ -1,6 +1,15 @@
 import type { Types, Document } from 'mongoose';
 
-export const AD_EVENT_TYPES = ['impression', 'click', 'link_visit', 'dismiss'] as const;
+export const AD_EVENT_TYPES = [
+  'impression',
+  'click',
+  'link_visit',
+  'dismiss',
+  'viewport_enter',
+  'viewport_exit',
+  'hover_start',
+  'hover_end',
+] as const;
 export type AdEventType = (typeof AD_EVENT_TYPES)[number];
 
 export const PRODUCT_SOURCES = ['organic', 'sponsored'] as const;
@@ -17,5 +26,7 @@ export interface IAdEvent extends Document {
   productId?: string;
   productName?: string;
   queryText: string;
+  dwellTimeMs?: number;
+  hoverTimeMs?: number;
   timestamp: Date;
 }

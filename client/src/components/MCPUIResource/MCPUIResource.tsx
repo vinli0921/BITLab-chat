@@ -2,9 +2,8 @@ import React from 'react';
 import { UIResourceRenderer } from '@mcp-ui/client';
 import { useOptionalMessagesConversation, useOptionalMessagesOperations } from '~/Providers';
 import { useConversationUIResources } from '~/hooks/Messages/useConversationUIResources';
-import ProductCard, {
-  PRODUCT_CARD_MIME_TYPE,
-} from '~/components/Chat/Messages/Content/ProductCard';
+import { PRODUCT_CARD_MIME_TYPE } from '~/components/Chat/Messages/Content/ProductCard';
+import type { ProductCardData } from '@librechat/api';
 import { handleUIAction } from '~/utils';
 import { useLocalize } from '~/hooks';
 
@@ -38,10 +37,26 @@ export function MCPUIResource(props: MCPUIResourceProps) {
   }
 
   if (uiResource.mimeType === PRODUCT_CARD_MIME_TYPE) {
+    let product: ProductCardData | null = null;
+    try {
+      product = JSON.parse(uiResource.text ?? '') as ProductCardData;
+    } catch {
+      /* ignore */
+    }
+    if (!product) {
+      return null;
+    }
     return (
-      <span className="mx-1 inline-block w-[calc((100%-2rem)/3)] align-middle">
-        <ProductCard text={uiResource.text ?? ''} />
-      </span>
+      <a
+        href={product.buyUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="inline no-underline hover:!text-blue-500 hover:!underline"
+        style={{ color: 'inherit', textDecoration: 'none' }}
+      >
+        <span className="font-medium">{product.name}</span>
+        <span> — {product.price}</span>
+      </a>
     );
   }
 

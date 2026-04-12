@@ -3,10 +3,35 @@ import { useAtomValue } from 'jotai';
 import { UIResourceRenderer } from '@mcp-ui/client';
 import type { UIResource } from 'librechat-data-provider';
 import { adContextAtom } from '~/store/experiment';
-import { useOptionalMessagesOperations } from '~/Providers';
+import { useOptionalMessagesConversation, useOptionalMessagesOperations } from '~/Providers';
+import { useAdTracking } from '~/hooks/useAdTracking';
 import ProductCard, { PRODUCT_CARD_MIME_TYPE } from './ProductCard';
 import { useExperiment } from '~/context/ExperimentContext';
 import { handleUIAction } from '~/utils';
+
+function SponsoredCardWrapper({
+  text,
+  messageId,
+  conversationId,
+  queryText,
+}: {
+  text: string;
+  messageId: string;
+  conversationId: string;
+  queryText: string;
+}) {
+  const { trackingRef, onHoverStart, onHoverEnd } = useAdTracking({
+    messageId,
+    conversationId,
+    queryText,
+  });
+
+  return (
+    <div ref={trackingRef} onMouseEnter={onHoverStart} onMouseLeave={onHoverEnd}>
+      <ProductCard text={text} sponsored={true} />
+    </div>
+  );
+}
 
 interface UIResourceCarouselProps {
   uiResources: UIResource[];
@@ -22,6 +47,7 @@ const UIResourceCarousel: React.FC<UIResourceCarouselProps> = React.memo(
     const [isContainerHovered, setIsContainerHovered] = useState(false);
     const scrollContainerRef = React.useRef<HTMLDivElement>(null);
     const { ask } = useOptionalMessagesOperations();
+    const { conversationId } = useOptionalMessagesConversation();
     const { variant } = useExperiment();
     const adContextMap = useAtomValue(adContextAtom);
     const adResult = userMessageId ? adContextMap[userMessageId] : undefined;
@@ -116,8 +142,15 @@ const UIResourceCarousel: React.FC<UIResourceCarouselProps> = React.memo(
                 style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="flex h-full flex-col">
-                  {isProductCard ? (
-                    <ProductCard text={uiResource.text ?? ''} sponsored={isSponsored} />
+                  {isProductCard && isSponsored ? (
+                    <SponsoredCardWrapper
+                      text={uiResource.text ?? ''}
+                      messageId={userMessageId ?? ''}
+                      conversationId={conversationId ?? ''}
+                      queryText={adResult?.queryText ?? ''}
+                    />
+                  ) : isProductCard ? (
+                    <ProductCard text={uiResource.text ?? ''} />
                   ) : (
                     <UIResourceRenderer
                       resource={uiResource}
