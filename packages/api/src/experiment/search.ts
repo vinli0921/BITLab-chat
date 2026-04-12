@@ -34,6 +34,15 @@ function mapShoppingResult(item: ShoppingResult): ProductCardData | null {
     return null;
   }
 
+  try {
+    const protocol = new URL(buyUrl).protocol;
+    if (protocol !== 'http:' && protocol !== 'https:') {
+      return null;
+    }
+  } catch {
+    return null;
+  }
+
   const product: ProductCardData = { name, price, storeName, buyUrl };
 
   if (item.thumbnail) {

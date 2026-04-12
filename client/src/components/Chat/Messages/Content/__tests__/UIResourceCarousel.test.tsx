@@ -221,16 +221,15 @@ describe('UIResourceCarousel', () => {
     });
   });
 
-  it('applies correct dimensions to resource containers', () => {
+  it('applies correct classes and animation delays to resource containers', () => {
     render(<UIResourceCarousel uiResources={mockUIResources.slice(0, 2)} />);
     const containers = screen
       .getAllByTestId('ui-resource-renderer')
       .map((el) => el.parentElement?.parentElement);
 
     containers.forEach((container, index) => {
+      expect(container).toHaveClass('shrink-0');
       expect(container).toHaveStyle({
-        width: '230px',
-        minHeight: '360px',
         animationDelay: `${index * 100}ms`,
       });
     });
