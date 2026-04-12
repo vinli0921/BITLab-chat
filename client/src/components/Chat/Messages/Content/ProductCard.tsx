@@ -59,7 +59,7 @@ export default function ProductCard({ text, sponsored = false }: ProductCardProp
 
       <div className="flex flex-col gap-1 px-1 pt-2">
         {sponsored && (
-          <span className="text-[11px] text-text-secondary">{localize('com_ui_sponsored')}</span>
+          <span className="text-[13px] text-text-secondary">{localize('com_ui_sponsored')}</span>
         )}
         <p className="line-clamp-2 text-sm font-medium text-text-primary">{product.name}</p>
         <span className="text-sm text-text-secondary">
