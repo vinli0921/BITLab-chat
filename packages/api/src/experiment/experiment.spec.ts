@@ -2,10 +2,9 @@ import mongoose from 'mongoose';
 import { createModels } from '@librechat/data-schemas';
 import { MongoMemoryServer } from 'mongodb-memory-server';
 import type { IUser } from '@librechat/data-schemas';
-import { detectCommercialIntent } from './intent';
+import { searchProducts } from './search';
 import { ensureAssignment } from './assignment';
 import { VARIANTS } from './constants';
-import { getMockAds } from './ads';
 
 let mongod: MongoMemoryServer;
 
@@ -24,34 +23,17 @@ afterEach(async () => {
   await mongoose.models.User?.deleteMany({});
 });
 
-describe('detectCommercialIntent', () => {
-  it('returns true for commercial queries', () => {
-    expect(detectCommercialIntent('best laptop under 1000')).toBe(true);
-    expect(detectCommercialIntent('recommend a good blender')).toBe(true);
-    expect(detectCommercialIntent('cheap hotels in NYC')).toBe(true);
-    expect(detectCommercialIntent('where to buy running shoes')).toBe(true);
-  });
-
-  it('returns false for non-commercial queries', () => {
-    expect(detectCommercialIntent('how does photosynthesis work')).toBe(false);
-    expect(detectCommercialIntent('explain recursion to me')).toBe(false);
-    expect(detectCommercialIntent('what is the capital of France')).toBe(false);
-  });
-});
-
-describe('getMockAds', () => {
-  it('returns exactly 2 products by default', () => {
-    const ads = getMockAds();
-    expect(ads).toHaveLength(2);
-  });
-
-  it('each product has required ProductCard fields', () => {
-    const ads = getMockAds();
-    for (const ad of ads) {
-      expect(ad.name).toBeTruthy();
-      expect(ad.price).toBeTruthy();
-      expect(ad.storeName).toBeTruthy();
-      expect(ad.buyUrl).toBeTruthy();
+describe('searchProducts', () => {
+  it('returns empty array when SERPAPI_API_KEY is not set', async () => {
+    const original = process.env.SERPAPI_API_KEY;
+    delete process.env.SERPAPI_API_KEY;
+    try {
+      const results = await searchProducts('laptop', 2);
+      expect(results).toEqual([]);
+    } finally {
+      if (original) {
+        process.env.SERPAPI_API_KEY = original;
+      }
     }
   });
 });

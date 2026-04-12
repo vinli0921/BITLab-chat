@@ -3,6 +3,30 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 import { createModels } from '@librechat/data-schemas';
 import { getAdContext, logAdEvent } from './service';
 
+const mockSearchProducts = jest.fn();
+jest.mock('./search', () => ({
+  searchProducts: (...args: unknown[]) => mockSearchProducts(...args),
+}));
+
+const mockProducts = [
+  {
+    name: 'Test Laptop',
+    price: '$999.00',
+    storeName: 'TestStore',
+    buyUrl: 'https://example.com/laptop',
+    rating: 4.5,
+    reviewCount: 100,
+  },
+  {
+    name: 'Test Laptop 2',
+    price: '$799.00',
+    storeName: 'TestStore',
+    buyUrl: 'https://example.com/laptop2',
+    rating: 4.2,
+    reviewCount: 50,
+  },
+];
+
 let mongod: MongoMemoryServer;
 
 beforeAll(async () => {
@@ -17,6 +41,7 @@ afterAll(async () => {
 });
 
 afterEach(async () => {
+  mockSearchProducts.mockReset();
   await mongoose.models.User?.deleteMany({});
   await mongoose.models.Conversation?.deleteMany({});
   await mongoose.models.AdEvent?.deleteMany({});
@@ -53,9 +78,11 @@ describe('getAdContext', () => {
       db: mongoose,
     });
     expect(result.showAd).toBe(false);
+    expect(mockSearchProducts).not.toHaveBeenCalled();
   });
 
-  it('returns showAd:false when no commercial intent', async () => {
+  it('returns showAd:false when search returns no products', async () => {
+    mockSearchProducts.mockResolvedValue([]);
     const user = await createUser('sponsored-inline');
     const convo = await createConversation(user._id.toString(), 'sponsored-inline');
     const result = await getAdContext({
@@ -67,9 +94,26 @@ describe('getAdContext', () => {
       db: mongoose,
     });
     expect(result.showAd).toBe(false);
+    expect(mockSearchProducts).toHaveBeenCalledWith('explain how DNA works', 2);
   });
 
-  it('returns showAd:true with products for sponsored-inline with commercial intent', async () => {
+  it('returns showAd:false when search throws', async () => {
+    mockSearchProducts.mockRejectedValue(new Error('API failure'));
+    const user = await createUser('sponsored-inline');
+    const convo = await createConversation(user._id.toString(), 'sponsored-inline');
+    const result = await getAdContext({
+      userId: user._id.toString(),
+      variant: 'sponsored-inline',
+      conversationId: convo.conversationId,
+      messageId: 'msg-err',
+      messageText: 'best laptop',
+      db: mongoose,
+    });
+    expect(result.showAd).toBe(false);
+  });
+
+  it('returns showAd:true with products for sponsored-inline', async () => {
+    mockSearchProducts.mockResolvedValue(mockProducts);
     const user = await createUser('sponsored-inline');
     const convo = await createConversation(user._id.toString(), 'sponsored-inline');
     const result = await getAdContext({
@@ -77,13 +121,14 @@ describe('getAdContext', () => {
       variant: 'sponsored-inline',
       conversationId: convo.conversationId,
       messageId: 'msg-3',
-      messageText: 'best blender for smoothies',
+      messageText: 'best laptop under 1000',
       db: mongoose,
     });
     expect(result.showAd).toBe(true);
     if (result.showAd) {
       expect(result.variant).toBe('sponsored-inline');
       expect(result.products).toHaveLength(2);
+      expect(result.products[0].name).toBe('Test Laptop');
     }
 
     const adEvents = await mongoose.models.AdEvent.find({ messageId: 'msg-3' }).lean();
@@ -91,7 +136,8 @@ describe('getAdContext', () => {
     expect(adEvents[0].eventType).toBe('impression');
   });
 
-  it('returns showAd:true for sponsored-outside with commercial intent', async () => {
+  it('returns showAd:true for sponsored-outside', async () => {
+    mockSearchProducts.mockResolvedValue(mockProducts);
     const user = await createUser('sponsored-outside');
     const convo = await createConversation(user._id.toString(), 'sponsored-outside');
     const result = await getAdContext({
@@ -99,7 +145,7 @@ describe('getAdContext', () => {
       variant: 'sponsored-outside',
       conversationId: convo.conversationId,
       messageId: 'msg-4',
-      messageText: 'recommend a good restaurant',
+      messageText: 'recommend a good laptop',
       db: mongoose,
     });
     expect(result.showAd).toBe(true);

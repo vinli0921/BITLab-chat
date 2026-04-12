@@ -2,9 +2,8 @@ import type { IAdEvent, AdEventType, ProductSource } from '@librechat/data-schem
 import type mongoose from 'mongoose';
 import type { ProductCardData } from './ads';
 import type { Variant } from './constants';
-import { detectCommercialIntent } from './intent';
+import { searchProducts } from './search';
 import { STUDY_ID } from './constants';
-import { getMockAds } from './ads';
 
 interface AdContextParams {
   userId: string;
@@ -35,11 +34,16 @@ export async function getAdContext(
     return { showAd: false };
   }
 
-  if (!detectCommercialIntent(messageText)) {
+  let products: ProductCardData[];
+  try {
+    products = await searchProducts(messageText, 2);
+  } catch {
     return { showAd: false };
   }
 
-  const products = getMockAds(2);
+  if (products.length === 0) {
+    return { showAd: false };
+  }
 
   await logAdEvent({
     userId,

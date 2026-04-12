@@ -1,5 +1,4 @@
-export { detectCommercialIntent } from './intent';
-export { getMockAds } from './ads';
+export { searchProducts } from './search';
 export { ensureAssignment } from './assignment';
 export { getAdContext, logAdEvent } from './service';
 export { STUDY_ID, VARIANTS } from './constants';

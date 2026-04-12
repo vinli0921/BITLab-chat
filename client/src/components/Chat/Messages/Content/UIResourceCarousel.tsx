@@ -108,18 +108,12 @@ const UIResourceCarousel: React.FC<UIResourceCarouselProps> = React.memo(
           {allResources.map((uiResource, index) => {
             const isProductCard = uiResource.mimeType === PRODUCT_CARD_MIME_TYPE;
             const isSponsored = (uiResource as SponsoredResource).sponsored === true;
-            const height = 360;
-            const width = 230;
 
             return (
               <div
                 key={index}
-                className="flex-shrink-0 transform-gpu transition-all duration-300 ease-out animate-in fade-in-0 slide-in-from-bottom-5"
-                style={{
-                  width: `${width}px`,
-                  minHeight: `${height}px`,
-                  animationDelay: `${index * 100}ms`,
-                }}
+                className="shrink-0 basis-[calc((100%-2rem)/3)] transform-gpu transition-all duration-300 ease-out animate-in fade-in-0 slide-in-from-bottom-5"
+                style={{ animationDelay: `${index * 100}ms` }}
               >
                 <div className="flex h-full flex-col">
                   {isProductCard ? (
