@@ -11,6 +11,8 @@ import SiblingSwitch from '~/components/Chat/Messages/SiblingSwitch';
 import HoverButtons from '~/components/Chat/Messages/HoverButtons';
 import MessageIcon from '~/components/Chat/Messages/MessageIcon';
 import SubRow from '~/components/Chat/Messages/SubRow';
+import { MessageIdProvider } from '~/components/Chat/Messages/MessageIdContext';
+import { useMessageTracking } from '~/hooks/useMessageTracking';
 import { fontSizeAtom } from '~/store/fontSize';
 import store from '~/store';
 
@@ -160,6 +162,12 @@ const ContentRender = memo(function ContentRender({
 
   const { hasParallelContent } = useContentMetadata(msg);
 
+  const shouldTrackResponse = !msg?.isCreatedByUser && !(isLast && isSubmitting);
+  const { trackingRef } = useMessageTracking({
+    messageId: msg?.messageId ?? '',
+    conversationId: conversation?.conversationId ?? '',
+  });
+
   if (!msg) {
     return null;
   }
@@ -184,86 +192,98 @@ const ContentRender = memo(function ContentRender({
   };
 
   return (
-    <div
-      id={msg.messageId}
-      aria-label={getMessageAriaLabel(msg, localize)}
-      className={cn(
-        baseClasses.common,
-        baseClasses.chat,
-        conditionalClasses.focus,
-        'message-render',
-      )}
+    <MessageIdProvider
+      value={
+        msg.isCreatedByUser
+          ? null
+          : {
+              messageId: msg.messageId ?? '',
+              conversationId: conversation?.conversationId ?? '',
+            }
+      }
     >
-      {!hasParallelContent && (
-        <div className="relative flex flex-shrink-0 flex-col items-center">
-          <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full">
-            <MessageIcon iconData={iconData} assistant={assistant} agent={agent} />
-          </div>
-        </div>
-      )}
-
       <div
+        id={msg.messageId}
+        aria-label={getMessageAriaLabel(msg, localize)}
         className={cn(
-          'relative flex flex-col',
-          hasParallelContent ? 'w-full' : 'w-11/12',
-          msg.isCreatedByUser ? 'user-turn' : 'agent-turn',
+          baseClasses.common,
+          baseClasses.chat,
+          conditionalClasses.focus,
+          'message-render',
         )}
       >
         {!hasParallelContent && (
-          <h2 className={cn('select-none font-semibold', fontSize)}>
-            <span className="sr-only">{getHeaderPrefixForScreenReader(msg, localize)}</span>
-            {messageLabel}
-          </h2>
+          <div className="relative flex flex-shrink-0 flex-col items-center">
+            <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full">
+              <MessageIcon iconData={iconData} assistant={assistant} agent={agent} />
+            </div>
+          </div>
         )}
 
-        <div className="flex flex-col gap-1">
-          <div className="flex min-h-[20px] max-w-full flex-grow flex-col gap-0">
-            <ContentParts
-              edit={edit}
-              isLast={isLast}
-              enterEdit={enterEdit}
-              siblingIdx={siblingIdx}
-              messageId={msg.messageId}
-              attachments={attachments}
-              searchResults={searchResults}
-              setSiblingIdx={setSiblingIdx}
-              isLatestMessage={isLatestMessage}
-              isSubmitting={isSubmitting}
-              isCreatedByUser={msg.isCreatedByUser}
-              conversationId={conversation?.conversationId}
-              content={msg.content as Array<TMessageContentParts | undefined>}
-              userMessageId={userMessageId}
-            />
-          </div>
-          {hasNoChildren && isSubmitting ? (
-            <PlaceholderRow />
-          ) : (
-            <SubRow classes="text-xs">
-              <SiblingSwitch
-                siblingIdx={siblingIdx}
-                siblingCount={siblingCount}
-                setSiblingIdx={setSiblingIdx}
-              />
-              <HoverButtons
-                index={index}
-                message={msg}
-                isEditing={edit}
-                enterEdit={enterEdit}
-                isSubmitting={chatContext.isSubmitting}
-                conversation={conversation ?? null}
-                regenerate={handleRegenerateMessage}
-                copyToClipboard={copyToClipboard}
-                handleContinue={handleContinue}
-                latestMessageId={latestMessageId}
-                handleFeedback={handleFeedback}
-                isLast={isLast}
-              />
-            </SubRow>
+        <div
+          ref={shouldTrackResponse ? trackingRef : undefined}
+          className={cn(
+            'relative flex flex-col',
+            hasParallelContent ? 'w-full' : 'w-11/12',
+            msg.isCreatedByUser ? 'user-turn' : 'agent-turn',
           )}
-          {sponsoredPanel}
+        >
+          {!hasParallelContent && (
+            <h2 className={cn('select-none font-semibold', fontSize)}>
+              <span className="sr-only">{getHeaderPrefixForScreenReader(msg, localize)}</span>
+              {messageLabel}
+            </h2>
+          )}
+
+          <div className="flex flex-col gap-1">
+            <div className="flex min-h-[20px] max-w-full flex-grow flex-col gap-0">
+              <ContentParts
+                edit={edit}
+                isLast={isLast}
+                enterEdit={enterEdit}
+                siblingIdx={siblingIdx}
+                messageId={msg.messageId}
+                attachments={attachments}
+                searchResults={searchResults}
+                setSiblingIdx={setSiblingIdx}
+                isLatestMessage={isLatestMessage}
+                isSubmitting={isSubmitting}
+                isCreatedByUser={msg.isCreatedByUser}
+                conversationId={conversation?.conversationId}
+                content={msg.content as Array<TMessageContentParts | undefined>}
+                userMessageId={userMessageId}
+              />
+            </div>
+            {hasNoChildren && isSubmitting ? (
+              <PlaceholderRow />
+            ) : (
+              <SubRow classes="text-xs">
+                <SiblingSwitch
+                  siblingIdx={siblingIdx}
+                  siblingCount={siblingCount}
+                  setSiblingIdx={setSiblingIdx}
+                />
+                <HoverButtons
+                  index={index}
+                  message={msg}
+                  isEditing={edit}
+                  enterEdit={enterEdit}
+                  isSubmitting={chatContext.isSubmitting}
+                  conversation={conversation ?? null}
+                  regenerate={handleRegenerateMessage}
+                  copyToClipboard={copyToClipboard}
+                  handleContinue={handleContinue}
+                  latestMessageId={latestMessageId}
+                  handleFeedback={handleFeedback}
+                  isLast={isLast}
+                />
+              </SubRow>
+            )}
+            {sponsoredPanel}
+          </div>
         </div>
       </div>
-    </div>
+    </MessageIdProvider>
   );
 }, areContentRenderPropsEqual);
 ContentRender.displayName = 'ContentRender';
