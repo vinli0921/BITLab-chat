@@ -4,7 +4,9 @@ import { useToastContext } from '@librechat/client';
 import { PermissionTypes, Permissions, apiBaseUrl } from 'librechat-data-provider';
 import Mermaid, { MermaidErrorBoundary } from '~/components/Messages/Content/Mermaid';
 import CodeBlock from '~/components/Messages/Content/CodeBlock';
+import { useMessageIdContext } from '~/components/Chat/Messages/MessageIdContext';
 import useHasAccess from '~/hooks/Roles/useHasAccess';
+import { postAdEvent } from '~/hooks/useAdContext';
 import { useFileDownload } from '~/data-provider';
 import { useCodeBlockContext } from '~/Providers';
 import { handleDoubleClick } from '~/utils';
@@ -109,6 +111,19 @@ export const a: React.ElementType = memo(function MarkdownAnchor({ href, childre
   const user = useRecoilValue(store.user);
   const { showToast } = useToastContext();
   const localize = useLocalize();
+  const messageCtx = useMessageIdContext();
+
+  const handleLinkClick = () => {
+    if (!messageCtx || !href) return;
+    const linkUrl = href.length > 500 ? href.slice(0, 500) : href;
+    postAdEvent({
+      eventType: 'response_link_click',
+      productSource: 'none',
+      messageId: messageCtx.messageId,
+      conversationId: messageCtx.conversationId,
+      linkUrl,
+    });
+  };
 
   const {
     file_id = '',
@@ -132,7 +147,7 @@ export const a: React.ElementType = memo(function MarkdownAnchor({ href, childre
 
   if (!file_id || !filename) {
     return (
-      <a href={href} {...props}>
+      <a href={href} {...props} onClick={handleLinkClick}>
         {children}
       </a>
     );
