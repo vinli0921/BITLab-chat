@@ -6,6 +6,12 @@ interface MessageTrackingParams {
   conversationId: string;
 }
 
+/**
+ * Provides viewport (IntersectionObserver) and scroll-depth tracking for assistant messages.
+ * Attach the returned `trackingRef` to the message container. Fires response_viewport_enter /
+ * response_viewport_exit events to support all study arms (including control). Scroll depth
+ * is the maximum visible fraction observed while in view — seeded at enter, updated on scroll.
+ */
 export function useMessageTracking({ messageId, conversationId }: MessageTrackingParams) {
   const enterTimeRef = useRef<number | null>(null);
   const maxScrollDepthRef = useRef<number>(0);

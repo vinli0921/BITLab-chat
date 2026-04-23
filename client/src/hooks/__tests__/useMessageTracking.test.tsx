@@ -34,7 +34,12 @@ afterEach(() => {
 function trigger(isIntersecting: boolean) {
   const obs = observers[observers.length - 1];
   obs.callback(
-    [{ isIntersecting, target: document.createElement('div') } as IntersectionObserverEntry],
+    [
+      {
+        isIntersecting,
+        target: document.createElement('div'),
+      } as unknown as IntersectionObserverEntry,
+    ],
     obs as unknown as IntersectionObserver,
   );
 }
@@ -81,5 +86,44 @@ describe('useMessageTracking', () => {
     );
 
     unmount();
+  });
+
+  it('records scroll depth when element has layout and scroll fires', () => {
+    const { result } = renderHook(() =>
+      useMessageTracking({ messageId: 'm3', conversationId: 'c3' }),
+    );
+    const el = document.createElement('div');
+    Object.defineProperty(el, 'getBoundingClientRect', {
+      value: () => ({
+        top: 100,
+        bottom: 500,
+        left: 0,
+        right: 100,
+        width: 100,
+        height: 400,
+        x: 0,
+        y: 100,
+        toJSON: () => {},
+      }),
+    });
+    Object.defineProperty(window, 'innerHeight', {
+      value: 800,
+      configurable: true,
+      writable: true,
+    });
+
+    act(() => result.current.trackingRef(el));
+    act(() => trigger(true));
+
+    (postAdEvent as jest.Mock).mockClear();
+    act(() => {
+      window.dispatchEvent(new Event('scroll'));
+    });
+    act(() => trigger(false));
+
+    const exitCall = (postAdEvent as jest.Mock).mock.calls.find(
+      ([arg]) => arg.eventType === 'response_viewport_exit',
+    );
+    expect(exitCall[0].scrollDepthPercent).toBeGreaterThan(0);
   });
 });
