@@ -8,6 +8,7 @@ import { cn, getHeaderPrefixForScreenReader, getMessageAriaLabel } from '~/utils
 import { useAdContext, postAdEvent } from '~/hooks/useAdContext';
 import { useMessageTracking } from '~/hooks/useMessageTracking';
 import MessageIcon from '~/components/Chat/Messages/MessageIcon';
+import { MessageIdProvider } from './MessageIdContext';
 import { useExperiment } from '~/context/ExperimentContext';
 import ContentParts from './Content/ContentParts';
 import { fontSizeAtom } from '~/store/fontSize';
@@ -128,107 +129,116 @@ export default function Message(props: TMessageProps) {
   };
 
   return (
-    <>
-      <div
-        className="w-full border-0 bg-transparent dark:border-0 dark:bg-transparent"
-        onWheel={handleScroll}
-        onTouchMove={handleScroll}
-      >
-        <div className="m-auto justify-center p-4 py-2 md:gap-6">
-          <div
-            id={messageId ?? ''}
-            aria-label={getMessageAriaLabel(message, localize)}
-            className={cn(baseClasses.common, baseClasses.chat, 'message-render')}
-          >
-            {!hasParallelContent && (
-              <div className="relative flex flex-shrink-0 flex-col items-center">
-                <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full pt-0.5">
-                  <MessageIcon iconData={iconData} assistant={assistant} agent={agent} />
-                </div>
-              </div>
-            )}
+    <MessageIdProvider
+      value={{
+        messageId: message?.messageId ?? '',
+        conversationId: conversation?.conversationId ?? '',
+      }}
+    >
+      <>
+        <div
+          className="w-full border-0 bg-transparent dark:border-0 dark:bg-transparent"
+          onWheel={handleScroll}
+          onTouchMove={handleScroll}
+        >
+          <div className="m-auto justify-center p-4 py-2 md:gap-6">
             <div
-              ref={shouldTrackResponse ? trackingRef : undefined}
-              className={cn(
-                'relative flex flex-col',
-                hasParallelContent ? 'w-full' : 'w-11/12',
-                isCreatedByUser ? 'user-turn' : 'agent-turn',
-              )}
+              id={messageId ?? ''}
+              aria-label={getMessageAriaLabel(message, localize)}
+              className={cn(baseClasses.common, baseClasses.chat, 'message-render')}
             >
               {!hasParallelContent && (
-                <h2 className={cn('select-none font-semibold text-text-primary', fontSize)}>
-                  <span className="sr-only">
-                    {getHeaderPrefixForScreenReader(message, localize)}
-                  </span>
-                  {name}
-                </h2>
-              )}
-              <div className="flex flex-col gap-1">
-                <div className="flex min-h-[20px] max-w-full flex-grow flex-col gap-0">
-                  <ContentParts
-                    edit={edit}
-                    isLast={isLast}
-                    enterEdit={enterEdit}
-                    siblingIdx={siblingIdx}
-                    attachments={attachments}
-                    isSubmitting={isSubmitting}
-                    searchResults={searchResults}
-                    messageId={message.messageId}
-                    setSiblingIdx={setSiblingIdx}
-                    isCreatedByUser={message.isCreatedByUser}
-                    conversationId={conversation?.conversationId}
-                    isLatestMessage={messageId === latestMessageId}
-                    content={message.content as Array<TMessageContentParts | undefined>}
-                    userMessageId={
-                      !message.isCreatedByUser ? (message.parentMessageId ?? undefined) : undefined
-                    }
-                  />
+                <div className="relative flex flex-shrink-0 flex-col items-center">
+                  <div className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full pt-0.5">
+                    <MessageIcon iconData={iconData} assistant={assistant} agent={agent} />
+                  </div>
                 </div>
-                {isLast && isSubmitting ? (
-                  <div className="mt-1 h-[31px] bg-transparent" />
-                ) : (
-                  <SubRow classes="text-xs">
-                    <SiblingSwitch
-                      siblingIdx={siblingIdx}
-                      siblingCount={siblingCount}
-                      setSiblingIdx={setSiblingIdx}
-                    />
-                    <HoverButtons
-                      index={index}
-                      isEditing={edit}
-                      message={message}
-                      enterEdit={enterEdit}
-                      isSubmitting={isSubmitting}
-                      conversation={conversation ?? null}
-                      regenerate={() => regenerateMessage()}
-                      copyToClipboard={copyToClipboard}
-                      handleContinue={handleContinue}
-                      latestMessageId={latestMessageId}
+              )}
+              <div
+                ref={shouldTrackResponse ? trackingRef : undefined}
+                className={cn(
+                  'relative flex flex-col',
+                  hasParallelContent ? 'w-full' : 'w-11/12',
+                  isCreatedByUser ? 'user-turn' : 'agent-turn',
+                )}
+              >
+                {!hasParallelContent && (
+                  <h2 className={cn('select-none font-semibold text-text-primary', fontSize)}>
+                    <span className="sr-only">
+                      {getHeaderPrefixForScreenReader(message, localize)}
+                    </span>
+                    {name}
+                  </h2>
+                )}
+                <div className="flex flex-col gap-1">
+                  <div className="flex min-h-[20px] max-w-full flex-grow flex-col gap-0">
+                    <ContentParts
+                      edit={edit}
                       isLast={isLast}
+                      enterEdit={enterEdit}
+                      siblingIdx={siblingIdx}
+                      attachments={attachments}
+                      isSubmitting={isSubmitting}
+                      searchResults={searchResults}
+                      messageId={message.messageId}
+                      setSiblingIdx={setSiblingIdx}
+                      isCreatedByUser={message.isCreatedByUser}
+                      conversationId={conversation?.conversationId}
+                      isLatestMessage={messageId === latestMessageId}
+                      content={message.content as Array<TMessageContentParts | undefined>}
+                      userMessageId={
+                        !message.isCreatedByUser
+                          ? (message.parentMessageId ?? undefined)
+                          : undefined
+                      }
                     />
-                  </SubRow>
-                )}
-                {!isCreatedByUser && showSponsoredPanel && adResult?.products && (
-                  <SponsoredPanel
-                    products={adResult.products}
-                    messageId={message.parentMessageId ?? ''}
-                    conversationId={conversation?.conversationId ?? ''}
-                    queryText={adResult.queryText}
-                    onEvent={(payload) => void postAdEvent(payload)}
-                  />
-                )}
+                  </div>
+                  {isLast && isSubmitting ? (
+                    <div className="mt-1 h-[31px] bg-transparent" />
+                  ) : (
+                    <SubRow classes="text-xs">
+                      <SiblingSwitch
+                        siblingIdx={siblingIdx}
+                        siblingCount={siblingCount}
+                        setSiblingIdx={setSiblingIdx}
+                      />
+                      <HoverButtons
+                        index={index}
+                        isEditing={edit}
+                        message={message}
+                        enterEdit={enterEdit}
+                        isSubmitting={isSubmitting}
+                        conversation={conversation ?? null}
+                        regenerate={() => regenerateMessage()}
+                        copyToClipboard={copyToClipboard}
+                        handleContinue={handleContinue}
+                        latestMessageId={latestMessageId}
+                        isLast={isLast}
+                      />
+                    </SubRow>
+                  )}
+                  {!isCreatedByUser && showSponsoredPanel && adResult?.products && (
+                    <SponsoredPanel
+                      products={adResult.products}
+                      messageId={message.parentMessageId ?? ''}
+                      conversationId={conversation?.conversationId ?? ''}
+                      queryText={adResult.queryText}
+                      onEvent={(payload) => void postAdEvent(payload)}
+                    />
+                  )}
+                </div>
               </div>
             </div>
           </div>
         </div>
-      </div>
-      <MultiMessage
-        messageId={messageId}
-        conversation={conversation}
-        messagesTree={children ?? []}
-        currentEditId={currentEditId}
-        setCurrentEditId={setCurrentEditId}
-      />
-    </>
+        <MultiMessage
+          messageId={messageId}
+          conversation={conversation}
+          messagesTree={children ?? []}
+          currentEditId={currentEditId}
+          setCurrentEditId={setCurrentEditId}
+        />
+      </>
+    </MessageIdProvider>
   );
 }
