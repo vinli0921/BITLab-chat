@@ -28,8 +28,10 @@ export interface IAdEvent extends Document {
   productSource: ProductSource;
   productId?: string;
   productName?: string;
-  queryText: string;
+  queryText?: string;
   dwellTimeMs?: number;
   hoverTimeMs?: number;
+  scrollDepthPercent?: number;
+  linkUrl?: string;
   timestamp: Date;
 }

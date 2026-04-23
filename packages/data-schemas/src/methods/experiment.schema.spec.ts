@@ -187,4 +187,71 @@ describe('AdEvent model', () => {
       expect(event.eventType).toBe(eventType);
     }
   });
+
+  it('saves response_viewport_exit with scrollDepthPercent and dwellTimeMs', async () => {
+    const AdEvent = mongoose.models.AdEvent;
+    const event = await AdEvent.create({
+      userId: new mongoose.Types.ObjectId(),
+      conversationId: 'convo-scroll',
+      messageId: 'msg-scroll',
+      studyId: 'study-1',
+      variant: 'control',
+      productSource: 'none',
+      eventType: 'response_viewport_exit',
+      dwellTimeMs: 3200,
+      scrollDepthPercent: 87,
+    });
+    const found = await AdEvent.findById(event._id).lean<IAdEvent>();
+    expect(found?.eventType).toBe('response_viewport_exit');
+    expect(found?.dwellTimeMs).toBe(3200);
+    expect(found?.scrollDepthPercent).toBe(87);
+  });
+
+  it('saves response_link_click with linkUrl', async () => {
+    const AdEvent = mongoose.models.AdEvent;
+    const event = await AdEvent.create({
+      userId: new mongoose.Types.ObjectId(),
+      conversationId: 'convo-link',
+      messageId: 'msg-link',
+      studyId: 'study-1',
+      variant: 'sponsored-inline',
+      productSource: 'none',
+      eventType: 'response_link_click',
+      linkUrl: 'https://example.com/product/123',
+    });
+    const found = await AdEvent.findById(event._id).lean<IAdEvent>();
+    expect(found?.linkUrl).toBe('https://example.com/product/123');
+  });
+
+  it('allows response-level events to omit queryText', async () => {
+    const AdEvent = mongoose.models.AdEvent;
+    const event = await AdEvent.create({
+      userId: new mongoose.Types.ObjectId(),
+      conversationId: 'convo-no-query',
+      messageId: 'msg-no-query',
+      studyId: 'study-1',
+      variant: 'control',
+      productSource: 'none',
+      eventType: 'response_viewport_enter',
+    });
+    expect(event.eventType).toBe('response_viewport_enter');
+    expect(event.queryText).toBeUndefined();
+  });
+
+  it('rejects linkUrl longer than 500 characters', async () => {
+    const AdEvent = mongoose.models.AdEvent;
+    const longUrl = 'https://example.com/' + 'a'.repeat(600);
+    await expect(
+      AdEvent.create({
+        userId: new mongoose.Types.ObjectId(),
+        conversationId: 'convo-long',
+        messageId: 'msg-long',
+        studyId: 'study-1',
+        variant: 'control',
+        productSource: 'none',
+        eventType: 'response_link_click',
+        linkUrl: longUrl,
+      }),
+    ).rejects.toThrow();
+  });
 });
