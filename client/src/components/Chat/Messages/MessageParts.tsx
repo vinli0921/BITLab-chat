@@ -6,6 +6,7 @@ import type { TMessageProps, TMessageIcon } from '~/common';
 import { useMessageHelpers, useLocalize, useAttachments, useContentMetadata } from '~/hooks';
 import { cn, getHeaderPrefixForScreenReader, getMessageAriaLabel } from '~/utils';
 import { useAdContext, postAdEvent } from '~/hooks/useAdContext';
+import { useMessageTracking } from '~/hooks/useMessageTracking';
 import MessageIcon from '~/components/Chat/Messages/MessageIcon';
 import { useExperiment } from '~/context/ExperimentContext';
 import ContentParts from './Content/ContentParts';
@@ -65,6 +66,12 @@ export default function Message(props: TMessageProps) {
 
   const adResult = !isCreatedByUser ? getResult(message?.parentMessageId ?? '') : undefined;
   const showSponsoredPanel = variant === 'sponsored-outside' && adResult?.showAd === true;
+
+  const shouldTrackResponse = !isCreatedByUser && !(isLast && isSubmitting);
+  const { trackingRef } = useMessageTracking({
+    messageId: message?.messageId ?? '',
+    conversationId: conversation?.conversationId ?? '',
+  });
 
   const name = useMemo(() => {
     let result = '';
@@ -141,6 +148,7 @@ export default function Message(props: TMessageProps) {
               </div>
             )}
             <div
+              ref={shouldTrackResponse ? trackingRef : undefined}
               className={cn(
                 'relative flex flex-col',
                 hasParallelContent ? 'w-full' : 'w-11/12',
