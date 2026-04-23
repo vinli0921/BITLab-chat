@@ -166,4 +166,25 @@ describe('AdEvent model', () => {
       expect(event.eventType).toBe(eventType);
     }
   });
+
+  it('accepts response-level event types', async () => {
+    const AdEvent = mongoose.models.AdEvent;
+    const base = {
+      userId: new mongoose.Types.ObjectId(),
+      conversationId: 'convo-response',
+      messageId: 'msg-response',
+      studyId: 'study-1',
+      variant: 'control',
+      productSource: 'none' as const,
+      queryText: 'test',
+    };
+    for (const eventType of [
+      'response_viewport_enter',
+      'response_viewport_exit',
+      'response_link_click',
+    ]) {
+      const event = await AdEvent.create({ ...base, eventType });
+      expect(event.eventType).toBe(eventType);
+    }
+  });
 });
