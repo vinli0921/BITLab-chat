@@ -130,10 +130,14 @@ export default function Message(props: TMessageProps) {
 
   return (
     <MessageIdProvider
-      value={{
-        messageId: message?.messageId ?? '',
-        conversationId: conversation?.conversationId ?? '',
-      }}
+      value={
+        isCreatedByUser
+          ? null
+          : {
+              messageId: message?.messageId ?? '',
+              conversationId: conversation?.conversationId ?? '',
+            }
+      }
     >
       <>
         <div
