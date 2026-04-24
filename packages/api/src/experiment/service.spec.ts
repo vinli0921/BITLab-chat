@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import type { IAdEvent } from '@librechat/data-schemas';
 import { createModels } from '@librechat/data-schemas';
 import { getAdContext, logAdEvent } from './service';
 
@@ -175,5 +176,26 @@ describe('logAdEvent', () => {
     expect(events).toHaveLength(1);
     expect(events[0].eventType).toBe('click');
     expect(events[0].productId).toBe('blendjet-2');
+  });
+
+  it('persists scrollDepthPercent and linkUrl when provided', async () => {
+    const AdEvent = mongoose.models.AdEvent as mongoose.Model<IAdEvent>;
+    await logAdEvent({
+      userId: new mongoose.Types.ObjectId().toString(),
+      conversationId: 'convo-response',
+      messageId: 'msg-response',
+      studyId: 'study-1',
+      variant: 'sponsored-outside',
+      eventType: 'response_viewport_exit',
+      productSource: 'none',
+      dwellTimeMs: 5000,
+      scrollDepthPercent: 62,
+      linkUrl: 'https://example.com',
+      db: mongoose,
+    });
+    const found = await AdEvent.findOne({ messageId: 'msg-response' }).lean<IAdEvent>();
+    expect(found?.scrollDepthPercent).toBe(62);
+    expect(found?.linkUrl).toBe('https://example.com');
+    expect(found?.dwellTimeMs).toBe(5000);
   });
 });

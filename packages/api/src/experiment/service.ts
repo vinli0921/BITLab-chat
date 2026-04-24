@@ -70,9 +70,11 @@ interface LogAdEventParams {
   productSource: ProductSource;
   productId?: string;
   productName?: string;
-  queryText: string;
+  queryText?: string;
   dwellTimeMs?: number;
   hoverTimeMs?: number;
+  scrollDepthPercent?: number;
+  linkUrl?: string;
   db: typeof mongoose;
 }
 
@@ -88,9 +90,11 @@ export async function logAdEvent(params: LogAdEventParams): Promise<void> {
     productSource: params.productSource,
     productId: params.productId,
     productName: params.productName,
+    queryText: params.queryText,
     dwellTimeMs: params.dwellTimeMs,
     hoverTimeMs: params.hoverTimeMs,
-    queryText: params.queryText,
+    scrollDepthPercent: params.scrollDepthPercent,
+    linkUrl: params.linkUrl,
     timestamp: new Date(),
   });
 }

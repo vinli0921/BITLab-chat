@@ -58,6 +58,8 @@ export async function postAdEvent(params: {
   queryText?: string;
   dwellTimeMs?: number;
   hoverTimeMs?: number;
+  scrollDepthPercent?: number;
+  linkUrl?: string;
 }): Promise<void> {
   try {
     await axios.post('/api/experiment/ad-event', params);

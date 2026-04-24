@@ -42,6 +42,8 @@ router.post('/ad-event', async (req, res) => {
       queryText,
       dwellTimeMs,
       hoverTimeMs,
+      scrollDepthPercent,
+      linkUrl,
     } = req.body;
     const variant = req.user.experimentAssignment?.variant ?? 'control';
     const studyId = req.user.experimentAssignment?.studyId ?? 'study-1';
@@ -62,9 +64,11 @@ router.post('/ad-event', async (req, res) => {
       productSource,
       productId,
       productName,
-      queryText: queryText ?? '',
+      queryText,
       dwellTimeMs,
       hoverTimeMs,
+      scrollDepthPercent,
+      linkUrl,
       db: mongoose,
     });
 

@@ -12,6 +12,10 @@ jest.mock('~/hooks/useAdContext', () => ({
   postAdEvent: jest.fn(),
 }));
 
+jest.mock('~/hooks/useMessageTracking', () => ({
+  useMessageTracking: jest.fn(() => ({ trackingRef: jest.fn() })),
+}));
+
 jest.mock('~/hooks', () => ({
   useLocalize: () => (key: string) => key,
   useMessageHelpers: jest.fn(),
