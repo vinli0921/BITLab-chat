@@ -42,6 +42,7 @@ export default [
       'packages/data-schemas/misc/**/*',
       'data-node/**/*',
       'meili_data/**/*',
+      'mcp-servers/**/*',
       '**/node_modules/**/*',
       '.devcontainer/**/*',
     ],
