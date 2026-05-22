@@ -1,6 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const { isEnabled, getBalanceConfig, ensureAssignment } = require('@librechat/api');
+const {
+  isEnabled,
+  getBalanceConfig,
+  ensureAssignment,
+  getCloudFrontConfig,
+  sanitizeModelSpecs,
+} = require('@librechat/api');
 const { defaultSocialLogins } = require('librechat-data-provider');
 const { logger, getTenantId, SystemCapabilities } = require('@librechat/data-schemas');
 const { hasCapability } = require('~/server/middleware/roles/capabilities');
@@ -117,9 +123,30 @@ function buildWebSearchConfig(appConfig) {
   };
 }
 
+function buildCloudFrontStartupConfig() {
+  const config = getCloudFrontConfig();
+  if (
+    config?.imageSigning !== 'cookies' ||
+    !config.domain ||
+    !config.cookieDomain ||
+    !config.privateKey ||
+    !config.keyPairId
+  ) {
+    return undefined;
+  }
+
+  return {
+    cookieRefresh: {
+      endpoint: '/api/auth/cloudfront/refresh',
+      domain: config.domain,
+    },
+  };
+}
+
 router.get('/', async function (req, res) {
   try {
     const sharedPayload = buildSharedPayload();
+    const cloudFront = buildCloudFrontStartupConfig();
 
     if (!req.user) {
       const tenantId = getTenantId();
@@ -130,6 +157,7 @@ router.get('/', async function (req, res) {
         ...sharedPayload,
         socialLogins: baseConfig?.registration?.socialLogins ?? defaultSocialLogins,
         turnstile: baseConfig?.turnstileConfig,
+        ...(cloudFront ? { cloudFront } : {}),
       };
 
       const interfaceConfig = baseConfig?.interfaceConfig;
@@ -166,7 +194,7 @@ router.get('/', async function (req, res) {
       socialLogins: appConfig?.registration?.socialLogins ?? defaultSocialLogins,
       interface: appConfig?.interfaceConfig,
       turnstile: appConfig?.turnstileConfig,
-      modelSpecs: appConfig?.modelSpecs,
+      modelSpecs: sanitizeModelSpecs(appConfig?.modelSpecs),
       balance: balanceConfig,
       bundlerURL: process.env.SANDPACK_BUNDLER_URL,
       staticBundlerURL: process.env.SANDPACK_STATIC_BUNDLER_URL,
@@ -178,6 +206,7 @@ router.get('/', async function (req, res) {
         ? parseInt(process.env.CONVERSATION_IMPORT_MAX_FILE_SIZE_BYTES, 10)
         : 0,
       experimentVariant,
+      ...(cloudFront ? { cloudFront } : {}),
     };
 
     const webSearch = buildWebSearchConfig(appConfig);
