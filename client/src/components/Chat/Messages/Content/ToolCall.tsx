@@ -28,6 +28,7 @@ export default function ToolCall({
   attachments,
   auth,
   userMessageId,
+  hideAttachments = false,
 }: {
   initialProgress: number;
   isLast?: boolean;
@@ -38,6 +39,7 @@ export default function ToolCall({
   attachments?: TAttachment[];
   auth?: string;
   userMessageId?: string;
+  hideAttachments?: boolean;
 }) {
   const localize = useLocalize();
   const autoExpand = useRecoilValue(store.autoExpandTools);
@@ -261,7 +263,9 @@ export default function ToolCall({
           </p>
         </div>
       )}
-      {attachments && attachments.length > 0 && <AttachmentGroup attachments={attachments} />}
+      {!hideAttachments && attachments && attachments.length > 0 && (
+        <AttachmentGroup attachments={attachments} />
+      )}
     </>
   );
 }
