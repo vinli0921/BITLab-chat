@@ -1,3 +1,4 @@
+import type { ParsedServerConfig } from '~/mcp/types';
 import {
   buildOAuthToolCallName,
   normalizeServerName,
@@ -10,7 +11,6 @@ import {
   hasCustomUserVars,
   isUserSourced,
 } from '~/mcp/utils';
-import type { ParsedServerConfig } from '~/mcp/types';
 
 describe('normalizeServerName', () => {
   it('should not modify server names that already match the pattern', () => {

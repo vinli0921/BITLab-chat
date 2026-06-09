@@ -1,12 +1,12 @@
+import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import {
   AuthType,
   EModelEndpoint,
   BEDROCK_OUTPUT_128K_BETA,
   BEDROCK_FINE_GRAINED_TOOL_STREAMING_BETA,
 } from 'librechat-data-provider';
-import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
-import { initializeBedrock } from './initialize';
 import type { BaseInitializeParams, BedrockLLMConfigResult } from '~/types';
+import { initializeBedrock } from './initialize';
 import { checkUserKeyExpiry } from '~/utils';
 
 jest.mock('https-proxy-agent', () => ({

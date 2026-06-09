@@ -2,7 +2,6 @@ import { HttpsProxyAgent } from 'https-proxy-agent';
 import { NodeHttpHandler } from '@smithy/node-http-handler';
 import { fromNodeProviderChain } from '@aws-sdk/credential-providers';
 import { BedrockRuntimeClient } from '@aws-sdk/client-bedrock-runtime';
-import type { BedrockRuntimeClientConfig } from '@aws-sdk/client-bedrock-runtime';
 import {
   AuthType,
   EModelEndpoint,
@@ -11,6 +10,7 @@ import {
   bedrockOutputParser,
   removeNullishValues,
 } from 'librechat-data-provider';
+import type { BedrockRuntimeClientConfig } from '@aws-sdk/client-bedrock-runtime';
 import type {
   BaseInitializeParams,
   InitializeResultBase,

@@ -1,7 +1,7 @@
 import { randomBytes } from 'crypto';
 import { logger } from '@librechat/data-schemas';
-import type { FetchLike } from '@modelcontextprotocol/sdk/shared/transport';
 import { OAuthMetadataSchema } from '@modelcontextprotocol/sdk/shared/auth.js';
+import { TokenExchangeMethodEnum, type MCPOptions } from 'librechat-data-provider';
 import {
   checkResourceAllowed,
   resourceUrlFromServerUrl,
@@ -13,9 +13,8 @@ import {
   discoverAuthorizationServerMetadata,
   discoverOAuthProtectedResourceMetadata,
 } from '@modelcontextprotocol/sdk/client/auth.js';
-import { TokenExchangeMethodEnum, type MCPOptions } from 'librechat-data-provider';
+import type { FetchLike } from '@modelcontextprotocol/sdk/shared/transport';
 import type { TokenMethods } from '@librechat/data-schemas';
-import type { FlowStateManager } from '~/flow/manager';
 import type {
   OAuthClientInformation,
   OAuthProtectedResourceMetadata,
@@ -23,6 +22,7 @@ import type {
   MCPOAuthTokens,
   OAuthMetadata,
 } from './types';
+import type { FlowStateManager } from '~/flow/manager';
 import {
   resolveTokenEndpointAuthMethod,
   getForcedTokenEndpointAuthMethod,
@@ -31,10 +31,10 @@ import {
 } from './methods';
 import { isSSRFTarget, resolveHostnameSSRF, isOAuthUrlAllowed } from '~/auth';
 import { probeResourceMetadataHint } from './resourceHint';
-import { MCPTokenStorage } from './tokens';
 import { createHardenedOAuthFetch } from './hardenedFetch';
-import { getOAuthUrlPort } from './url';
 import { sanitizeUrlForLogging } from '~/mcp/utils';
+import { MCPTokenStorage } from './tokens';
+import { getOAuthUrlPort } from './url';
 
 /** Type for the OAuth metadata from the SDK */
 type SDKOAuthMetadata = Parameters<typeof registerClient>[1]['metadata'];

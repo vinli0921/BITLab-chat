@@ -4,11 +4,11 @@ import type { GraphTokenResolver } from '~/utils/graph';
 import type * as t from '~/mcp/types';
 import { MCPServersInitializer } from '~/mcp/registry/MCPServersInitializer';
 import { MCPServerInspector } from '~/mcp/registry/MCPServerInspector';
-import { MCPConnectionFactory } from '~/mcp/MCPConnectionFactory';
+import { OboTokenResolutionError, resolveOboToken } from '~/mcp/oauth';
 import { ConnectionsRepository } from '~/mcp/ConnectionsRepository';
+import { MCPConnectionFactory } from '~/mcp/MCPConnectionFactory';
 import { MCPConnection } from '~/mcp/connection';
 import { MCPManager } from '~/mcp/MCPManager';
-import { OboTokenResolutionError, resolveOboToken } from '~/mcp/oauth';
 import * as graphUtils from '~/utils/graph';
 
 // Mock external dependencies

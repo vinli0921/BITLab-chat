@@ -1,12 +1,12 @@
-import { Navigate, useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
 import { Spinner } from '@librechat/client';
 import { PermissionTypes, Permissions } from 'librechat-data-provider';
-import { useGetSkillByIdQuery } from '~/data-provider';
-import { useHasAccess, useAuthContext, useLocalize } from '~/hooks';
+import { Navigate, useNavigate, useParams, useLocation, useSearchParams } from 'react-router-dom';
 import SkillFileViewer from '~/components/Skills/display/SkillFileViewer';
+import { CreateSkillForm, SkillForm } from '~/components/Skills/forms';
+import { useHasAccess, useAuthContext, useLocalize } from '~/hooks';
 import SkillDetail from '~/components/Skills/display/SkillDetail';
 import SkillState from '~/components/Skills/display/SkillState';
-import { CreateSkillForm, SkillForm } from '~/components/Skills/forms';
+import { useGetSkillByIdQuery } from '~/data-provider';
 
 /**
  * Skill detail / edit / create route content.

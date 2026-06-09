@@ -6,14 +6,14 @@ import type {
   TAttachment,
   Agents,
 } from 'librechat-data-provider';
+import type { ToolCallGroupExpansionState } from './ToolCallGroup';
 import { ParallelContentRenderer, type PartWithIndex } from './ParallelContent';
 import { mapAttachments, groupSequentialToolCalls } from '~/utils';
 import { MessageContext, SearchContext } from '~/Providers';
-import { EditTextPart, EmptyText } from './Parts';
 import PendingSkillCall from './Parts/PendingSkillCall';
+import { EditTextPart, EmptyText } from './Parts';
 import MemoryArtifacts from './MemoryArtifacts';
 import ToolCallGroup from './ToolCallGroup';
-import type { ToolCallGroupExpansionState } from './ToolCallGroup';
 import Container from './Container';
 import Part from './Part';
 

@@ -1,14 +1,14 @@
 import { useDeferredValue, useEffect, useId, useMemo, useState } from 'react';
 import * as Ariakit from '@ariakit/react';
-import { ArrowUpDown, Check, Folder, Plus, Search } from 'lucide-react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import type { TChatProject } from 'librechat-data-provider';
+import { ArrowUpDown, Check, Folder, Plus, Search } from 'lucide-react';
 import { Input, Button, Spinner, DropdownPopup } from '@librechat/client';
+import type { TChatProject } from 'librechat-data-provider';
 import type { MenuItemProps, RenderProp } from '~/common';
 import { useProjectsInfiniteQuery } from '~/data-provider';
+import ProjectCreateDialog from './ProjectCreateDialog';
 import { useLocalize } from '~/hooks';
 import { cn } from '~/utils';
-import ProjectCreateDialog from './ProjectCreateDialog';
 
 type ProjectSort = 'name' | 'createdAt' | 'lastConversationAt';
 
