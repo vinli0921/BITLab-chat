@@ -1,9 +1,9 @@
 import React from 'react';
 import { UIResourceRenderer } from '@mcp-ui/client';
+import type { ProductCardData } from 'librechat-data-provider';
 import { useOptionalMessagesConversation, useOptionalMessagesOperations } from '~/Providers';
 import { useConversationUIResources } from '~/hooks/Messages/useConversationUIResources';
 import { PRODUCT_CARD_MIME_TYPE } from '~/components/Chat/Messages/Content/ProductCard';
-import type { ProductCardData } from '@librechat/api';
 import { handleUIAction } from '~/utils';
 import { useLocalize } from '~/hooks';
 

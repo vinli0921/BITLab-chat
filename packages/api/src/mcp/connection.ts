@@ -1,29 +1,28 @@
-import { lookup } from 'node:dns/promises';
 import { isIP } from 'node:net';
 import { EventEmitter } from 'events';
 import { logger } from '@librechat/data-schemas';
 import { fetch as undiciFetch, Agent, ProxyAgent } from 'undici';
-import {
-  StdioClientTransport,
-  getDefaultEnvironment,
-} from '@modelcontextprotocol/sdk/client/stdio.js';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { SSEClientTransport } from '@modelcontextprotocol/sdk/client/sse.js';
 import { WebSocketClientTransport } from '@modelcontextprotocol/sdk/client/websocket.js';
 import { ResourceListChangedNotificationSchema } from '@modelcontextprotocol/sdk/types.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
-import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
+import {
+  StdioClientTransport,
+  getDefaultEnvironment,
+} from '@modelcontextprotocol/sdk/client/stdio.js';
 import type {
   RequestInit as UndiciRequestInit,
   RequestInfo as UndiciRequestInfo,
   Response as UndiciResponse,
   Dispatcher,
 } from 'undici';
+import type { Transport } from '@modelcontextprotocol/sdk/shared/transport.js';
 import type { MCPOAuthTokens } from './oauth/types';
 import type * as t from './types';
 import { createSSRFSafeUndiciConnect, isSSRFTarget, resolveHostnameSSRF } from '~/auth';
-import { isAddressAllowed } from '~/auth/domain';
 import { runOutsideTracing } from '~/utils/tracing';
+import { isAddressAllowed } from '~/auth/domain';
 import { sanitizeUrlForLogging } from './utils';
 import { withTimeout } from '~/utils/promise';
 import { mcpConfig } from './mcpConfig';
@@ -855,27 +854,14 @@ function createMCPDispatcher(options: {
   });
 }
 
-async function assertProxiedRequestTargetResolvable(hostname: string): Promise<void> {
-  if (parseIPLiteral(hostname)) {
-    return;
-  }
-
-  try {
-    await lookup(hostname, { all: true });
-  } catch {
-    throw new Error(
-      `SSRF protection: proxied MCP request target "${hostname}" could not be resolved before proxying`,
-    );
-  }
-}
-
 async function assertProxiedRequestTargetAllowed(
   urlString: string,
   proxyConfig: MCPProxyConfig | undefined,
   useSSRFProtection: boolean,
   allowedAddresses?: string[] | null,
 ): Promise<void> {
-  if (!proxyConfig || !useSSRFProtection) {
+  const proxyUrl = getProxyUrlForRequest(proxyConfig, urlString);
+  if (!proxyUrl || !useSSRFProtection) {
     return;
   }
 
@@ -884,13 +870,17 @@ async function assertProxiedRequestTargetAllowed(
   if (isAddressAllowed(targetUrl.hostname, allowedAddresses, port)) {
     return;
   }
+  if (!parseIPLiteral(targetUrl.hostname)) {
+    throw new Error(
+      `SSRF protection: proxied MCP request target "${targetUrl.hostname}" must be an IP literal or an explicitly allowed host`,
+    );
+  }
 
   const isBlockedTarget =
     isSSRFTarget(targetUrl.hostname, allowedAddresses, port) ||
     (await resolveHostnameSSRF(targetUrl.hostname, allowedAddresses, port));
 
   if (!isBlockedTarget) {
-    await assertProxiedRequestTargetResolvable(targetUrl.hostname);
     return;
   }
 
@@ -2193,7 +2183,50 @@ export class MCPConnection extends EventEmitter {
     }
   }
 
-  async fetchTools() {
+  async fetchTools(): Promise<
+    {
+      inputSchema: {
+        [x: string]: unknown;
+        type: 'object';
+        properties?: Record<string, object> | undefined;
+        required?: string[] | undefined;
+      };
+      name: string;
+      description?: string | undefined;
+      outputSchema?:
+        | {
+            [x: string]: unknown;
+            type: 'object';
+            properties?: Record<string, object> | undefined;
+            required?: string[] | undefined;
+          }
+        | undefined;
+      annotations?:
+        | {
+            title?: string | undefined;
+            readOnlyHint?: boolean | undefined;
+            destructiveHint?: boolean | undefined;
+            idempotentHint?: boolean | undefined;
+            openWorldHint?: boolean | undefined;
+          }
+        | undefined;
+      execution?:
+        | {
+            taskSupport?: 'optional' | 'required' | 'forbidden' | undefined;
+          }
+        | undefined;
+      _meta?: Record<string, unknown> | undefined;
+      icons?:
+        | {
+            src: string;
+            mimeType?: string | undefined;
+            sizes?: string[] | undefined;
+            theme?: 'light' | 'dark' | undefined;
+          }[]
+        | undefined;
+      title?: string | undefined;
+    }[]
+  > {
     try {
       const { tools } = await this.client.listTools();
       return tools;
@@ -2324,6 +2357,10 @@ export class MCPConnection extends EventEmitter {
       }
       // Check for authentication required
       if (message.includes('authentication required') || message.includes('unauthorized')) {
+        return true;
+      }
+      // Check for missing authorization values (e.g., Amazon Ads MCP returns HTTP 400 with this)
+      if (message.includes('no authorization')) {
         return true;
       }
     }

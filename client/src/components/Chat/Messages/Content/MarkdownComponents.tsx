@@ -3,13 +3,13 @@ import { useRecoilValue } from 'recoil';
 import { useToastContext } from '@librechat/client';
 import { PermissionTypes, Permissions, apiBaseUrl } from 'librechat-data-provider';
 import Mermaid, { MermaidErrorBoundary } from '~/components/Messages/Content/Mermaid';
-import CodeBlock from '~/components/Messages/Content/CodeBlock';
 import { useMessageIdContext } from '~/components/Chat/Messages/MessageIdContext';
+import CodeBlock from '~/components/Messages/Content/CodeBlock';
+import { handleDoubleClick, triggerDownload } from '~/utils';
 import useHasAccess from '~/hooks/Roles/useHasAccess';
 import { postAdEvent } from '~/hooks/useAdContext';
 import { useFileDownload } from '~/data-provider';
 import { useCodeBlockContext } from '~/Providers';
-import { handleDoubleClick, triggerDownload } from '~/utils';
 import { useLocalize } from '~/hooks';
 import store from '~/store';
 
@@ -199,6 +199,19 @@ export const p: React.ElementType = memo(function MarkdownParagraph({ children }
   return <p className="mb-2 whitespace-pre-wrap">{children}</p>;
 });
 p.displayName = 'MarkdownParagraph';
+
+type TTableProps = {
+  children: React.ReactNode;
+};
+
+export const table: React.ElementType = memo(function MarkdownTable({ children }: TTableProps) {
+  return (
+    <div className="markdown-table-wrapper w-full max-w-full">
+      <table>{children}</table>
+    </div>
+  );
+});
+table.displayName = 'MarkdownTable';
 
 type TImageProps = {
   src?: string;

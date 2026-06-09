@@ -1,6 +1,4 @@
 import type { TEndpointsConfig } from './types';
-import { EModelEndpoint, isDocumentSupportedProvider } from './schemas';
-import { getEndpointFileConfig, mergeFileConfig } from './file-config';
 import {
   allowedAddressesSchema,
   configSchema,
@@ -8,6 +6,8 @@ import {
   resolveEndpointType,
   webSearchSchema,
 } from './config';
+import { EModelEndpoint, isDocumentSupportedProvider } from './schemas';
+import { getEndpointFileConfig, mergeFileConfig } from './file-config';
 
 const endpointsConfig: TEndpointsConfig = {
   [EModelEndpoint.openAI]: { userProvide: false, order: 0 },
@@ -26,6 +26,34 @@ describe('excludedKeys', () => {
 
   it('does not exclude tenantId (plugin-level guard owns this)', () => {
     expect(excludedKeys.has('tenantId')).toBe(false);
+  });
+});
+
+describe('bedrockEndpointSchema', () => {
+  it('preserves guardrailConfig from configSchema parsing', () => {
+    const guardrailConfig = {
+      guardrailIdentifier: '${BEDROCK_GUARDRAIL_ID}',
+      guardrailVersion: '${BEDROCK_GUARDRAIL_VERSION}',
+      trace: 'enabled_full',
+      streamProcessingMode: 'sync',
+    };
+
+    const result = configSchema.safeParse({
+      version: '1.0',
+      endpoints: {
+        bedrock: {
+          streamRate: 25,
+          availableRegions: ['us-west-2'],
+          guardrailConfig,
+        },
+      },
+    });
+
+    expect(result.success).toBe(true);
+    if (!result.success) {
+      return;
+    }
+    expect(result.data.endpoints?.bedrock?.guardrailConfig).toEqual(guardrailConfig);
   });
 });
 

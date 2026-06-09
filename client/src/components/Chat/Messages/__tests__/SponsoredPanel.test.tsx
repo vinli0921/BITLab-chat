@@ -1,6 +1,6 @@
 import { render, screen, fireEvent } from '@testing-library/react';
+import type { ProductCardData } from 'librechat-data-provider';
 import SponsoredPanel from '../SponsoredPanel';
-import type { ProductCardData } from '@librechat/api';
 
 const mockObserve = jest.fn();
 const mockDisconnect = jest.fn();

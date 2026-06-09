@@ -1,7 +1,8 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
 import { createStore, Provider as JotaiProvider } from 'jotai';
-import type { TMessage, TMessageProps } from '~/common';
+import type { TMessage } from 'librechat-data-provider';
+import type { TMessageProps } from '~/common';
 import MessageParts from '../MessageParts';
 
 jest.mock('~/context/ExperimentContext', () => ({

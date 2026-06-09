@@ -1,5 +1,5 @@
 import { atom } from 'jotai';
-import type { ProductCardData } from '@librechat/api';
+import type { ProductCardData } from 'librechat-data-provider';
 
 export interface AdContextResult {
   showAd: true;

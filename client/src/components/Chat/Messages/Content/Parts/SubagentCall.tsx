@@ -3,19 +3,17 @@ import { useRecoilValue } from 'recoil';
 import { ContentTypes, EModelEndpoint } from 'librechat-data-provider';
 import { ArrowDown, ChevronRight, Maximize2, Minimize2, Users } from 'lucide-react';
 import { OGDialog, OGDialogContent, OGDialogTitle, OGDialogDescription } from '@librechat/client';
-
 import type { TAttachment, TMessage, TMessageContentParts } from 'librechat-data-provider';
 import type { PartWithIndex } from '~/components/Chat/Messages/Content/ParallelContent';
 import type { SubagentTickerLine } from '~/utils/subagentContent';
-
 import ToolCallGroup from '~/components/Chat/Messages/Content/ToolCallGroup';
 import MarkdownLite from '~/components/Chat/Messages/Content/MarkdownLite';
 import { cn, groupSequentialToolCalls, parseToolName } from '~/utils';
 import Container from '~/components/Chat/Messages/Content/Container';
 import ToolCall from '~/components/Chat/Messages/Content/ToolCall';
 import { MessageContext } from '~/Providers/MessageContext';
-import { subagentProgressByToolCallId } from '~/store';
 import MessageIcon from '~/components/Share/MessageIcon';
+import { subagentProgressByToolCallId } from '~/store';
 import { useAgentsMapContext } from '~/Providers';
 import { AttachmentGroup } from './Attachment';
 import { useLocalize } from '~/hooks';
@@ -293,7 +291,12 @@ export default function SubagentCall({
    * from routing through `Parts/index`.
    */
   const renderDialogPart = useCallback(
-    (part: TMessageContentParts, idx: number, isLastPart: boolean): JSX.Element | null => {
+    (
+      part: TMessageContentParts,
+      idx: number,
+      isLastPart: boolean,
+      onToolExpand?: () => void,
+    ): JSX.Element | null => {
       return (
         <SubagentDialogPart
           key={`${toolCallId}-part-${idx}`}
@@ -301,6 +304,7 @@ export default function SubagentCall({
           isSubmitting={running}
           showCursor={running && isLastPart}
           isLast={isLastPart}
+          onToolExpand={onToolExpand}
         />
       );
     },
@@ -811,11 +815,13 @@ function SubagentDialogPart({
   isSubmitting,
   showCursor,
   isLast,
+  onToolExpand,
 }: {
   part: TMessageContentParts;
   isSubmitting: boolean;
   showCursor: boolean;
   isLast: boolean;
+  onToolExpand?: () => void;
 }): JSX.Element | null {
   if (part.type === ContentTypes.TEXT) {
     const text = (part as { text: string }).text;
@@ -849,6 +855,7 @@ function SubagentDialogPart({
         isSubmitting={isSubmitting}
         isLast={isLast}
         name={tc.name ?? ''}
+        onExpand={onToolExpand}
       />
     );
   }

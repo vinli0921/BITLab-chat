@@ -2,7 +2,6 @@ import React, { useState, useMemo, useCallback } from 'react';
 import * as Ariakit from '@ariakit/react';
 import { TooltipAnchor, DropdownPopup, PinIcon, VectorIcon } from '@librechat/client';
 import { Globe, ScrollText, Settings, Settings2, TerminalSquareIcon } from 'lucide-react';
-import type { MenuItemProps } from '~/common';
 import {
   AuthType,
   Permissions,
@@ -10,6 +9,7 @@ import {
   PermissionTypes,
   defaultAgentCapabilities,
 } from 'librechat-data-provider';
+import type { MenuItemProps } from '~/common';
 import { useLocalize, useHasAccess, useAgentCapabilities } from '~/hooks';
 import ArtifactsSubMenu from '~/components/Chat/Input/ArtifactsSubMenu';
 import MCPSubMenu from '~/components/Chat/Input/MCPSubMenu';
@@ -227,7 +227,7 @@ const ToolsDropdown = ({ disabled }: ToolsDropdownProps) => {
       onClick: handleSkillsToggle,
       hideOnClick: false,
       render: (props) => (
-        <div {...props}>
+        <div {...props} data-testid="tools-menu-skills">
           <div className="flex items-center gap-2">
             <ScrollText className="icon-md" aria-hidden="true" />
             <span>{localize('com_ui_skills')}</span>

@@ -12,6 +12,7 @@ const staticRoute = require('./static');
 const messages = require('./messages');
 const memories = require('./memories');
 const presets = require('./presets');
+const projects = require('./projects');
 const prompts = require('./prompts');
 const skills = require('./skills');
 const balance = require('./balance');
@@ -33,9 +34,11 @@ const keys = require('./keys');
 const user = require('./user');
 const experiment = require('./experiment');
 const mcp = require('./mcp');
+const rum = require('./rum');
 
 module.exports = {
   experiment,
+  rum,
   mcp,
   auth,
   adminAuth,
@@ -59,6 +62,7 @@ module.exports = {
   config,
   models,
   prompts,
+  projects,
   skills,
   actions,
   presets,

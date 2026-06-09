@@ -6,10 +6,10 @@ import type { TMessageProps, TMessageIcon } from '~/common';
 import { useMessageHelpers, useLocalize, useAttachments, useContentMetadata } from '~/hooks';
 import { cn, getHeaderPrefixForScreenReader, getMessageAriaLabel } from '~/utils';
 import { useAdContext, postAdEvent } from '~/hooks/useAdContext';
-import { useMessageTracking } from '~/hooks/useMessageTracking';
 import MessageIcon from '~/components/Chat/Messages/MessageIcon';
-import { MessageIdProvider } from './MessageIdContext';
+import { useMessageTracking } from '~/hooks/useMessageTracking';
 import { useExperiment } from '~/context/ExperimentContext';
+import { MessageIdProvider } from './MessageIdContext';
 import ContentParts from './Content/ContentParts';
 import { fontSizeAtom } from '~/store/fontSize';
 import SponsoredPanel from './SponsoredPanel';
@@ -149,7 +149,12 @@ export default function Message(props: TMessageProps) {
             <div
               id={messageId ?? ''}
               aria-label={getMessageAriaLabel(message, localize)}
-              className={cn(baseClasses.common, baseClasses.chat, 'message-render')}
+              className={cn(
+                baseClasses.common,
+                baseClasses.chat,
+                'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-xheavy',
+                'message-render',
+              )}
             >
               {!hasParallelContent && (
                 <div className="relative flex flex-shrink-0 flex-col items-center">

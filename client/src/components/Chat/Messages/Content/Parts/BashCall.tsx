@@ -2,13 +2,13 @@ import { useMemo, useRef, useState, useCallback, useEffect } from 'react';
 import copy from 'copy-to-clipboard';
 import type { TAttachment } from 'librechat-data-provider';
 import ProgressText from '~/components/Chat/Messages/Content/ProgressText';
+import parseJsonField, { areToolCallArgsComplete } from './parseJsonField';
 import CopyButton from '~/components/Messages/Content/CopyButton';
 import LangIcon from '~/components/Messages/Content/LangIcon';
 import useToolCallState from './useToolCallState';
 import useLazyHighlight from './useLazyHighlight';
 import { ERROR_PATTERNS } from './ExecuteCode';
 import { AttachmentGroup } from './Attachment';
-import parseJsonField, { areToolCallArgsComplete } from './parseJsonField';
 import { useLocalize } from '~/hooks';
 import { cn } from '~/utils';
 
@@ -20,6 +20,7 @@ export default function BashCall({
   attachments,
   commandField = 'command',
   hideAttachments = false,
+  onExpand,
 }: {
   initialProgress: number;
   isSubmitting: boolean;
@@ -28,13 +29,14 @@ export default function BashCall({
   attachments?: TAttachment[];
   commandField?: string;
   hideAttachments?: boolean;
+  onExpand?: () => void;
 }) {
   const localize = useLocalize();
   const command = useMemo(() => parseJsonField(args, commandField), [args, commandField]);
   const isWritingCommand = !command || !areToolCallArgsComplete(args);
 
   const { showCode, toggleCode, expandStyle, expandRef, progress, cancelled, hasError, hasOutput } =
-    useToolCallState(initialProgress, isSubmitting, output, !!command);
+    useToolCallState(initialProgress, isSubmitting, output, !!command, onExpand);
 
   const highlighted = useLazyHighlight(command || undefined, 'bash');
   const outputHasError = useMemo(() => ERROR_PATTERNS.test(output), [output]);

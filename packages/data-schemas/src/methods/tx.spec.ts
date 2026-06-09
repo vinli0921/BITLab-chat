@@ -1,5 +1,4 @@
 /** Note: No hard-coded values should be used in this file. */
-import { matchModelName, findMatchingPattern } from './test-helpers';
 import { EModelEndpoint } from 'librechat-data-provider';
 import {
   createTxMethods,
@@ -8,6 +7,7 @@ import {
   premiumTokenValues,
   defaultRate,
 } from './tx';
+import { matchModelName, findMatchingPattern } from './test-helpers';
 
 const { getValueKey, getMultiplier, getPremiumRate, getCacheMultiplier } = createTxMethods(
   {} as typeof import('mongoose'),
@@ -2337,6 +2337,46 @@ describe('Claude Model Tests', () => {
       cacheTokenValues['claude-opus-4-7'].read,
     );
   });
+
+  it('should return correct prompt and completion rates for Claude Opus 4.8', () => {
+    expect(getMultiplier({ model: 'claude-opus-4-8', tokenType: 'prompt' })).toBe(
+      tokenValues['claude-opus-4-8'].prompt,
+    );
+    expect(getMultiplier({ model: 'claude-opus-4-8', tokenType: 'completion' })).toBe(
+      tokenValues['claude-opus-4-8'].completion,
+    );
+  });
+
+  it('should handle Claude Opus 4.8 model name variations', () => {
+    const modelVariations = [
+      'claude-opus-4-8',
+      'claude-opus-4-8-20260528',
+      'claude-opus-4-8-latest',
+      'anthropic/claude-opus-4-8',
+      'claude-opus-4-8/anthropic',
+      'claude-opus-4-8-preview',
+    ];
+
+    modelVariations.forEach((model) => {
+      const valueKey = getValueKey(model);
+      expect(valueKey).toBe('claude-opus-4-8');
+      expect(getMultiplier({ model, tokenType: 'prompt' })).toBe(
+        tokenValues['claude-opus-4-8'].prompt,
+      );
+      expect(getMultiplier({ model, tokenType: 'completion' })).toBe(
+        tokenValues['claude-opus-4-8'].completion,
+      );
+    });
+  });
+
+  it('should return correct cache rates for Claude Opus 4.8', () => {
+    expect(getCacheMultiplier({ model: 'claude-opus-4-8', cacheType: 'write' })).toBe(
+      cacheTokenValues['claude-opus-4-8'].write,
+    );
+    expect(getCacheMultiplier({ model: 'claude-opus-4-8', cacheType: 'read' })).toBe(
+      cacheTokenValues['claude-opus-4-8'].read,
+    );
+  });
 });
 
 describe('Premium Token Pricing', () => {
@@ -2357,7 +2397,12 @@ describe('Premium Token Pricing', () => {
   });
 
   it('should not apply premium pricing to Claude 1M GA models', () => {
-    const claudeModels = ['claude-opus-4-6', 'claude-opus-4-7', 'claude-sonnet-4-6'];
+    const claudeModels = [
+      'claude-opus-4-6',
+      'claude-opus-4-7',
+      'claude-opus-4-8',
+      'claude-sonnet-4-6',
+    ];
     claudeModels.forEach((model) => {
       expect(premiumTokenValues[model]).toBeUndefined();
       expect(getPremiumRate(model, 'prompt', wellAboveThreshold)).toBeNull();

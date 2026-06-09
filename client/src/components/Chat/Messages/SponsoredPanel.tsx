@@ -1,5 +1,5 @@
 import React from 'react';
-import type { ProductCardData } from '@librechat/api';
+import type { ProductCardData } from 'librechat-data-provider';
 import { useAdTracking } from '~/hooks/useAdTracking';
 import { useLocalize } from '~/hooks';
 

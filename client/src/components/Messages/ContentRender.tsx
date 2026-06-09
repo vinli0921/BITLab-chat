@@ -5,14 +5,14 @@ import type { TMessage, TMessageContentParts } from 'librechat-data-provider';
 import type { TMessageProps, TMessageIcon, TMessageChatContext } from '~/common';
 import { useAttachments, useLocalize, useMessageActions, useContentMetadata } from '~/hooks';
 import { cn, getHeaderPrefixForScreenReader, getMessageAriaLabel } from '~/utils';
+import { MessageIdProvider } from '~/components/Chat/Messages/MessageIdContext';
 import ContentParts from '~/components/Chat/Messages/Content/ContentParts';
 import PlaceholderRow from '~/components/Chat/Messages/ui/PlaceholderRow';
 import SiblingSwitch from '~/components/Chat/Messages/SiblingSwitch';
 import HoverButtons from '~/components/Chat/Messages/HoverButtons';
 import MessageIcon from '~/components/Chat/Messages/MessageIcon';
-import SubRow from '~/components/Chat/Messages/SubRow';
-import { MessageIdProvider } from '~/components/Chat/Messages/MessageIdContext';
 import { useMessageTracking } from '~/hooks/useMessageTracking';
+import SubRow from '~/components/Chat/Messages/SubRow';
 import { fontSizeAtom } from '~/store/fontSize';
 import store from '~/store';
 
@@ -190,7 +190,7 @@ const ContentRender = memo(function ContentRender({
   };
 
   const conditionalClasses = {
-    focus: 'focus:outline-none focus:ring-2 focus:ring-border-xheavy',
+    focus: 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-border-xheavy',
   };
 
   return (
