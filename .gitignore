@@ -62,6 +62,7 @@ client/node_modules/
 bower_components/
 *.d.ts
 !vite-env.d.ts
+!/packages/api/src/types/supertest.d.ts
 
 # AI
 .clineignore

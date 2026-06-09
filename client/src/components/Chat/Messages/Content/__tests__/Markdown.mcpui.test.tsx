@@ -1,11 +1,6 @@
 import React from 'react';
 import { RecoilRoot } from 'recoil';
 import { render, screen } from '@testing-library/react';
-import {
-  useMessageContext,
-  useOptionalMessagesConversation,
-  useOptionalMessagesOperations,
-} from '~/Providers';
 import { UI_RESOURCE_MARKER } from '~/components/MCPUIResource/plugin';
 import { useGetMessagesByConvoId } from '~/data-provider';
 import MarkdownLite from '../MarkdownLite';
@@ -14,11 +9,22 @@ import Markdown from '../Markdown';
 
 // Mocks for hooks used by MCPUIResource when rendered inside Markdown.
 // Keep Provider components intact while mocking only the hooks we use.
+//
+// The mocked hooks resolve their return values through module-scoped `mock*`
+// closures rather than per-instance `mockReturnValue`. Loading the full markdown
+// pipeline re-enters the `~/Providers` mock factory, so the rendered component
+// tree and the test can end up holding different mock instances; sharing the
+// closure makes every instance return the same configured value instead of an
+// unset `undefined`.
+let mockMessageCtx: any = {};
+let mockMessagesConvo: any = {};
+let mockMessagesOps: any = { getMessages: () => [] };
+
 jest.mock('~/Providers', () => ({
   ...jest.requireActual('~/Providers'),
-  useMessageContext: jest.fn(),
-  useOptionalMessagesConversation: jest.fn(),
-  useOptionalMessagesOperations: jest.fn(),
+  useMessageContext: jest.fn(() => mockMessageCtx),
+  useOptionalMessagesConversation: jest.fn(() => mockMessagesConvo),
+  useOptionalMessagesOperations: jest.fn(() => mockMessagesOps),
 }));
 jest.mock('~/data-provider');
 jest.mock('~/hooks');
@@ -30,13 +36,6 @@ jest.mock('@mcp-ui/client', () => ({
   ),
 }));
 
-const mockUseMessageContext = useMessageContext as jest.MockedFunction<typeof useMessageContext>;
-const mockUseMessagesConversation = useOptionalMessagesConversation as jest.MockedFunction<
-  typeof useOptionalMessagesConversation
->;
-const mockUseMessagesOperations = useOptionalMessagesOperations as jest.MockedFunction<
-  typeof useOptionalMessagesOperations
->;
 const mockUseGetMessagesByConvoId = useGetMessagesByConvoId as jest.MockedFunction<
   typeof useGetMessagesByConvoId
 >;
@@ -49,15 +48,15 @@ describe('Markdown with MCP UI markers (resource IDs)', () => {
     jest.clearAllMocks();
     currentTestMessages = [];
 
-    mockUseMessageContext.mockReturnValue({ messageId: 'msg-weather' } as any);
-    mockUseMessagesConversation.mockReturnValue({
+    mockMessageCtx = { messageId: 'msg-weather' };
+    mockMessagesConvo = {
       conversation: { conversationId: 'conv1' },
       conversationId: 'conv1',
-    } as any);
-    mockUseMessagesOperations.mockReturnValue({
+    };
+    mockMessagesOps = {
       ask: jest.fn(),
       getMessages: () => currentTestMessages,
-    } as any);
+    };
     mockUseLocalize.mockReturnValue(((key: string) => key) as any);
   });
 
