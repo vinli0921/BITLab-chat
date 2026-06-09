@@ -15,6 +15,7 @@ import type {
   AgentToolResources,
   AgentToolOptions,
   TEndpointOption,
+  ReasoningResponseKey,
   TFile,
   Agent,
   TUser,
@@ -23,15 +24,8 @@ import type { GenericTool, LCToolRegistry, ToolMap, LCTool } from '@librechat/ag
 import type { Response as ServerResponse } from 'express';
 import type { IMongoFile } from '@librechat/data-schemas';
 import type { InitializeResultBase, ServerRequest, EndpointDbMethods } from '~/types';
-import {
-  optionalChainWithEmptyCheck,
-  extractLibreChatParams,
-  getModelMaxTokens,
-  getThreadData,
-} from '~/utils';
-import { filterFilesByEndpointConfig } from '~/files';
-import { generateArtifactsPrompt } from '~/prompts';
-import { getProviderConfig } from '~/endpoints';
+import type { ResolvedManualSkill, ResolvedAlwaysApplySkill } from './skills';
+import type { TFilterFilesByAgentAccess } from './resources';
 import {
   injectSkillCatalog,
   resolveManualSkills,
@@ -39,10 +33,21 @@ import {
   unionPrimeAllowedTools,
   MAX_PRIMED_SKILLS_PER_TURN,
 } from './skills';
-import { registerCodeExecutionTools } from './tools';
+import {
+  optionalChainWithEmptyCheck,
+  extractLibreChatParams,
+  getModelMaxTokens,
+  getThreadData,
+} from '~/utils';
+import {
+  registerCodeExecutionTools,
+  registerFileAuthoringTools,
+  isFileAuthoringToolDefinition,
+} from './tools';
+import { filterFilesByEndpointConfig } from '~/files';
+import { generateArtifactsPrompt } from '~/prompts';
+import { getProviderConfig } from '~/endpoints';
 import { primeResources } from './resources';
-import type { ResolvedManualSkill, ResolvedAlwaysApplySkill } from './skills';
-import type { TFilterFilesByAgentAccess } from './resources';
 
 /**
  * Fraction of context budget reserved as headroom when no explicit maxContextTokens is set.
@@ -51,6 +56,15 @@ import type { TFilterFilesByAgentAccess } from './resources';
  */
 const DEFAULT_RESERVE_RATIO = 0.05;
 const temporalSpecialVarRegex = /{{\s*(current_date|current_datetime|iso_datetime)\s*}}/i;
+const geminiModelVersionRegex = /^gemini-(\d+)(?:\.(\d+))?(?:-|$)/;
+const googleToolCombinationTextModels = [
+  'gemini-3-flash-preview',
+  'gemini-3-pro-preview',
+  'gemini-3.1-flash-lite',
+  'gemini-3.1-pro-preview',
+];
+const googleToolCombinationExcludedModalityRegex =
+  /(?:^|-)image(?:-|$)|(?:^|-)live(?:-|$)|(?:^|-)tts(?:-|$)/;
 
 function hasTemporalSpecialVars(text: string): boolean {
   return temporalSpecialVarRegex.test(text);
@@ -65,6 +79,13 @@ function appendAdditionalInstructions(agent: Agent, text?: string | null): void 
     .join('\n\n');
 }
 
+function getMaxCatalogSkills(req: ServerRequest): number | undefined {
+  const endpoints = req.config?.endpoints as
+    | Record<string, { skills?: { maxCatalogSkills?: number } } | undefined>
+    | undefined;
+  return endpoints?.[EModelEndpoint.agents]?.skills?.maxCatalogSkills;
+}
+
 function getToolName(tool: unknown): string | undefined {
   if (tool == null || typeof tool !== 'object') {
     return undefined;
@@ -77,7 +98,81 @@ function hasToolDefinition(toolDefinitions: LCTool[] | undefined, name: string):
   return toolDefinitions?.some((toolDefinition) => toolDefinition.name === name) === true;
 }
 
-function resolveAnthropicToolConflicts({
+function hasGoogleSearchTool(tool: unknown): boolean {
+  if (tool == null || typeof tool !== 'object') {
+    return false;
+  }
+  return 'googleSearch' in tool || 'googleSearchRetrieval' in tool;
+}
+
+function normalizeGoogleModelName(model: string): string {
+  const normalized = model.trim().toLowerCase();
+  return normalized.split('/').pop() ?? normalized;
+}
+
+function isKnownGoogleToolCombinationTextModel(model: string): boolean {
+  return googleToolCombinationTextModels.some(
+    (knownModel) => model === knownModel || model.startsWith(`${knownModel}-`),
+  );
+}
+
+function isGemini35OrLater(model: string): boolean {
+  const match = geminiModelVersionRegex.exec(model);
+  if (!match) {
+    return false;
+  }
+  const major = Number(match[1]);
+  const minor = Number(match[2] ?? '0');
+  return major > 3 || (major === 3 && minor >= 5);
+}
+
+function supportsGoogleToolCombination(model: unknown): boolean {
+  if (typeof model !== 'string') {
+    return false;
+  }
+  const normalized = normalizeGoogleModelName(model);
+  if (googleToolCombinationExcludedModalityRegex.test(normalized)) {
+    return false;
+  }
+  return isKnownGoogleToolCombinationTextModel(normalized) || isGemini35OrLater(normalized);
+}
+
+function isGoogleToolCombinationProvider(provider?: string): boolean {
+  return provider === Providers.GOOGLE || provider === Providers.VERTEXAI;
+}
+
+function shouldIncludeGoogleServerSideToolInvocations({
+  provider,
+  hasProviderTools,
+  hasAgentTools,
+}: {
+  provider?: string;
+  hasProviderTools: boolean;
+  hasAgentTools: boolean;
+}): boolean {
+  return isGoogleToolCombinationProvider(provider) && hasProviderTools && hasAgentTools;
+}
+
+function assertGoogleToolCombinationSupport(model: unknown): void {
+  if (!supportsGoogleToolCombination(model)) {
+    throw new Error(`{ "type": "${ErrorTypes.GOOGLE_TOOL_CONFLICT}"}`);
+  }
+}
+
+function enableGoogleServerSideToolInvocations({
+  agent,
+  llmConfig,
+}: {
+  agent: Agent;
+  llmConfig: Record<string, unknown>;
+}): void {
+  llmConfig.includeServerSideToolInvocations = true;
+  if (agent.model_parameters) {
+    (agent.model_parameters as Record<string, unknown>).includeServerSideToolInvocations = true;
+  }
+}
+
+function resolveProviderToolConflicts({
   provider,
   tools,
   toolDefinitions,
@@ -86,7 +181,7 @@ function resolveAnthropicToolConflicts({
   tools?: unknown[];
   toolDefinitions?: LCTool[];
 }): unknown[] | undefined {
-  if (provider !== Providers.ANTHROPIC || !tools?.length) {
+  if (!tools?.length) {
     return tools;
   }
 
@@ -94,9 +189,19 @@ function resolveAnthropicToolConflicts({
     return tools;
   }
 
+  const shouldRemoveTool = (tool: unknown): boolean => {
+    if (provider === Providers.ANTHROPIC) {
+      return getToolName(tool) === Tools.web_search;
+    }
+    if (provider === Providers.GOOGLE || provider === Providers.VERTEXAI) {
+      return hasGoogleSearchTool(tool);
+    }
+    return false;
+  };
+
   let removed = 0;
   const resolvedTools = tools.filter((tool) => {
-    const shouldRemove = getToolName(tool) === Tools.web_search;
+    const shouldRemove = shouldRemoveTool(tool);
     if (shouldRemove) {
       removed += 1;
     }
@@ -105,7 +210,7 @@ function resolveAnthropicToolConflicts({
 
   if (removed > 0) {
     logger.debug(
-      `[initializeAgent] Removed ${removed} Anthropic native web_search tool(s); LibreChat web_search is enabled.`,
+      `[initializeAgent] Removed ${removed} ${provider} native web search tool(s); LibreChat web_search is enabled.`,
     );
   }
 
@@ -144,6 +249,8 @@ export type InitializedAgent = Agent & {
   actionsEnabled?: boolean;
   /** Maximum characters allowed in a single tool result before truncation. */
   maxToolResultChars?: number;
+  /** Response field to read model reasoning from for custom OpenAI-compatible endpoints. */
+  reasoningKey?: ReasoningResponseKey;
   /**
    * Whether the code-execution environment is available *for this agent*.
    * Narrower than the incoming `params.codeEnvAvailable` admin flag — this
@@ -156,6 +263,10 @@ export type InitializedAgent = Agent & {
    * (`packages/api/src/agents/added.ts`), so the check is uniform.
    */
   codeEnvAvailable: boolean;
+  /** Whether host-side skill file authoring is available for this agent/run. */
+  skillAuthoringAvailable: boolean;
+  /** Host-side file authoring tool names registered for this run. */
+  fileAuthoringToolNames?: Set<string>;
   /** Accessible skill IDs for ACL checking at execute time */
   accessibleSkillIds?: import('mongoose').Types.ObjectId[];
   /**
@@ -254,6 +365,8 @@ export interface InitializeAgentParams {
   isInitialAgent?: boolean;
   /** Accessible skill IDs for this user (pre-computed by the caller via ACL query) */
   accessibleSkillIds?: import('mongoose').Types.ObjectId[];
+  /** Whether skill file authoring should be exposed even before a user has viewable skills. */
+  skillAuthoringAvailable?: boolean;
   /** Whether the code execution environment is available (execute_code capability enabled) */
   codeEnvAvailable?: boolean;
   /** Per-user skill active/inactive overrides for filtering the skill catalog. */
@@ -276,7 +389,11 @@ export interface InitializeAgentParams {
  */
 export interface InitializeAgentDbMethods extends EndpointDbMethods {
   /** Update usage tracking for multiple files */
-  updateFilesUsage: (files: Array<{ file_id: string }>, fileIds?: string[]) => Promise<unknown[]>;
+  updateFilesUsage: (
+    files: Array<{ file_id: string }>,
+    fileIds?: string[],
+    options?: { user?: string },
+  ) => Promise<unknown[]>;
   /** Get files from database */
   getFiles: (filter: unknown, sort: unknown, select: unknown) => Promise<unknown[]>;
   /** Filter files by agent access permissions (ownership or agent attachment) */
@@ -322,6 +439,8 @@ export interface InitializeAgentDbMethods extends EndpointDbMethods {
        * by the manual-invocation resolver. Defaults to `true`.
        */
       userInvocable?: boolean;
+      /** True for deployment-directory skills that are loaded in memory. */
+      deployment?: boolean;
     }>;
     has_more?: boolean;
     after?: string | null;
@@ -367,6 +486,8 @@ export interface InitializeAgentDbMethods extends EndpointDbMethods {
      * caller can't bypass the popover-side filter.
      */
     userInvocable?: boolean;
+    /** True for deployment-directory skills that are loaded in memory. */
+    deployment?: boolean;
   } | null>;
   /**
    * Load accessible skills with `alwaysApply: true`, eagerly including
@@ -386,6 +507,8 @@ export interface InitializeAgentDbMethods extends EndpointDbMethods {
       body: string;
       author: import('mongoose').Types.ObjectId;
       allowedTools?: string[];
+      /** True for deployment-directory skills that are loaded in memory. */
+      deployment?: boolean;
     }>;
     has_more?: boolean;
     after?: string | null;
@@ -420,6 +543,7 @@ export async function initializeAgent(
     allowedProviders,
     isInitialAgent = false,
   } = params;
+  const requestFileOwnerId = req.user?.id;
 
   if (!db) {
     throw new Error('initializeAgent requires db methods to be passed');
@@ -521,10 +645,27 @@ export async function initializeAgent(
 
     const allToolFiles = toolFiles.concat(codeGeneratedFiles, userCodeFiles);
     if (requestFiles.length || allToolFiles.length) {
-      currentFiles = (await db.updateFilesUsage(requestFiles.concat(allToolFiles))) as IMongoFile[];
+      const requestUsageFiles =
+        requestFiles.length && requestFileOwnerId
+          ? ((await db.updateFilesUsage(requestFiles, undefined, {
+              user: requestFileOwnerId,
+            })) as IMongoFile[])
+          : [];
+      const requestUsageFileIds = new Set(requestUsageFiles.map((file) => file.file_id));
+      const trustedToolFiles = allToolFiles.filter(
+        (file) => !requestUsageFileIds.has(file.file_id),
+      );
+      const toolUsageFiles = trustedToolFiles.length
+        ? ((await db.updateFilesUsage(trustedToolFiles)) as IMongoFile[])
+        : [];
+      currentFiles = requestUsageFiles.concat(toolUsageFiles);
     }
   } else if (requestFiles.length) {
-    currentFiles = (await db.updateFilesUsage(requestFiles)) as IMongoFile[];
+    currentFiles = requestFileOwnerId
+      ? ((await db.updateFilesUsage(requestFiles, undefined, {
+          user: requestFileOwnerId,
+        })) as IMongoFile[])
+      : [];
   }
 
   if (currentFiles && currentFiles.length) {
@@ -579,7 +720,8 @@ export async function initializeAgent(
    * go first so their names win on dedup (primes earlier in the list
    * contribute before the same name gets deduped on a later prime).
    */
-  const hasSkillAccess = params.accessibleSkillIds && params.accessibleSkillIds.length > 0;
+  const hasSkillAccess = (params.accessibleSkillIds?.length ?? 0) > 0;
+  const skillAuthoringAvailable = params.skillAuthoringAvailable === true;
   let manualSkillPrimes: ResolvedManualSkill[] | undefined;
   let alwaysApplySkillPrimes: ResolvedAlwaysApplySkill[] | undefined;
   let extraAllowedToolNames: string[] = [];
@@ -847,9 +989,9 @@ export async function initializeAgent(
    * never accidentally registers `bash_tool` or primes sandbox files
    * just because the admin globally enabled code execution.
    *
-   * Done BEFORE the `hasAgentTools` / GOOGLE_TOOL_CONFLICT gate so
-   * execute-code-only agents on Google/Vertex still trip the conflict
-   * guard when provider-specific tools are also configured. Also before
+   * Done before provider-tool merging so execute-code-only agents on
+   * Google/Vertex still surface as external function definitions when
+   * provider-specific tools are also configured. Also before
    * `injectSkillCatalog` so the skill path's own
    * `registerCodeExecutionTools` call upgrades `read_file` from the
    * code-only description to the skill-aware description without adding a
@@ -880,9 +1022,29 @@ export async function initializeAgent(
     );
   }
 
+  if (skillAuthoringAvailable) {
+    const skillReadResult = registerCodeExecutionTools({
+      toolRegistry,
+      toolDefinitions,
+      includeBash: false,
+      includeSkillFileInstructions: true,
+      enableToolOutputReferences: effectiveCodeEnvAvailable,
+    });
+    toolDefinitions = skillReadResult.toolDefinitions;
+  }
+
+  if (effectiveCodeEnvAvailable || skillAuthoringAvailable) {
+    const fileAuthoringResult = registerFileAuthoringTools({
+      toolRegistry,
+      toolDefinitions,
+      includeSkillFileInstructions: skillAuthoringAvailable,
+    });
+    toolDefinitions = fileAuthoringResult.toolDefinitions;
+  }
+
   /** Check for tool presence from either full instances or definitions (event-driven mode) */
   const hasAgentTools = (structuredTools?.length ?? 0) > 0 || (toolDefinitions?.length ?? 0) > 0;
-  const providerTools = resolveAnthropicToolConflicts({
+  const providerTools = resolveProviderToolConflicts({
     provider: agent.provider,
     tools: options.tools,
     toolDefinitions,
@@ -893,12 +1055,20 @@ export async function initializeAgent(
     ? (providerTools as GenericTool[])
     : (structuredTools ?? []);
 
-  if (
-    (agent.provider === Providers.GOOGLE || agent.provider === Providers.VERTEXAI) &&
-    hasProviderTools &&
-    hasAgentTools
-  ) {
-    throw new Error(`{ "type": "${ErrorTypes.GOOGLE_TOOL_CONFLICT}"}`);
+  if (isGoogleToolCombinationProvider(agent.provider) && hasProviderTools && hasAgentTools) {
+    assertGoogleToolCombinationSupport(llmConfig.model);
+    if (
+      shouldIncludeGoogleServerSideToolInvocations({
+        provider: agent.provider,
+        hasProviderTools,
+        hasAgentTools,
+      })
+    ) {
+      enableGoogleServerSideToolInvocations({ agent, llmConfig });
+    }
+    if (structuredTools?.length) {
+      tools = structuredTools.concat(providerTools as GenericTool[]);
+    }
   } else if (
     (agent.provider === Providers.OPENAI ||
       agent.provider === Providers.AZURE ||
@@ -958,11 +1128,27 @@ export async function initializeAgent(
       userId: req.user?.id,
       skillStates: params.skillStates,
       defaultActiveOnShare: params.defaultActiveOnShare,
+      maxCatalogSkills: getMaxCatalogSkills(req),
     });
     toolDefinitions = skillResult.toolDefinitions;
     skillCount = skillResult.skillCount;
     executableSkillIds = skillResult.activeSkillIds;
     activeSkillNames = skillResult.activeSkillNames;
+  }
+
+  const hasFinalAgentTools =
+    (structuredTools?.length ?? 0) > 0 || (toolDefinitions?.length ?? 0) > 0;
+  if (isGoogleToolCombinationProvider(agent.provider) && hasProviderTools && hasFinalAgentTools) {
+    assertGoogleToolCombinationSupport(llmConfig.model);
+    if (
+      shouldIncludeGoogleServerSideToolInvocations({
+        provider: agent.provider,
+        hasProviderTools,
+        hasAgentTools: hasFinalAgentTools,
+      })
+    ) {
+      enableGoogleServerSideToolInvocations({ agent, llmConfig });
+    }
   }
 
   const agentMaxContextNum = Number(agentMaxContextTokens) || DEFAULT_MAX_CONTEXT_TOKENS;
@@ -993,6 +1179,11 @@ export async function initializeAgent(
       : undefined;
   const maxToolResultCharsResolved =
     providerMaxToolResultChars ?? endpointConfigs?.all?.maxToolResultChars;
+  const fileAuthoringToolNames = new Set(
+    (toolDefinitions ?? [])
+      .filter((toolDefinition) => isFileAuthoringToolDefinition(toolDefinition))
+      .map((toolDefinition) => toolDefinition.name),
+  );
 
   const initializedAgent: InitializedAgent = {
     ...agent,
@@ -1005,6 +1196,9 @@ export async function initializeAgent(
     actionsEnabled,
     baseContextTokens,
     codeEnvAvailable: effectiveCodeEnvAvailable,
+    reasoningKey: customEndpointConfig?.customParams?.reasoningKey,
+    skillAuthoringAvailable,
+    fileAuthoringToolNames: fileAuthoringToolNames.size > 0 ? fileAuthoringToolNames : undefined,
     skillCount,
     accessibleSkillIds: executableSkillIds,
     activeSkillNames,

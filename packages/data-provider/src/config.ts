@@ -1,14 +1,21 @@
 import { z } from 'zod';
 import type { ZodError } from 'zod';
 import type { TEndpointsConfig, TModelsConfig, TConfig } from './types';
-import { EModelEndpoint, eModelEndpointSchema, isAgentsEndpoint } from './schemas';
+import {
+  EModelEndpoint,
+  eModelEndpointSchema,
+  isAgentsEndpoint,
+  eReasoningParameterFormatSchema,
+  eReasoningResponseKeySchema,
+} from './schemas';
 import { ComponentTypes, SettingTypes, OptionTypes } from './generate';
 import { specsConfigSchema, TSpecsConfig } from './models';
+import { REFILL_INTERVAL_UNITS } from './balance';
 import { fileConfigSchema } from './file-config';
 import { apiBaseUrl } from './api-endpoints';
 import { FileSources } from './types/files';
 import { MCPServersSchema } from './mcp';
-import { REFILL_INTERVAL_UNITS } from './balance';
+export { MAX_SUBAGENTS } from './limits';
 
 export const defaultSocialLogins = ['google', 'facebook', 'openid', 'github', 'discord', 'saml'];
 
@@ -57,6 +64,7 @@ export const excludedKeys = new Set([
   'files',
   'spec',
   'disableParams',
+  'chatProjectId',
 ]);
 
 export enum SettingsViews {
@@ -397,16 +405,31 @@ export const baseEndpointSchema = z.object({
     .optional(),
   titleEndpoint: z.string().optional(),
   titlePromptTemplate: z.string().optional(),
+  /**
+   * When conversation titles are generated. `immediate` (default) generates the
+   * title as soon as the request is made, in parallel with the response, from the
+   * user's first message. `final` defers generation until the full response
+   * completes (legacy behavior).
+   */
+  titleTiming: z.union([z.literal('immediate'), z.literal('final')]).optional(),
   /** Maximum characters allowed in a single tool result before truncation. */
   maxToolResultChars: z.number().positive().optional(),
 });
 
 export type TBaseEndpoint = z.infer<typeof baseEndpointSchema>;
 
+export const bedrockGuardrailConfigSchema = z.object({
+  guardrailIdentifier: z.string(),
+  guardrailVersion: z.string(),
+  trace: z.enum(['enabled', 'disabled', 'enabled_full']).optional(),
+  streamProcessingMode: z.enum(['sync', 'async']).optional(),
+});
+
 export const bedrockEndpointSchema = baseEndpointSchema.merge(
   z.object({
     availableRegions: z.array(z.string()).optional(),
     models: z.array(z.string()).optional(),
+    guardrailConfig: bedrockGuardrailConfigSchema.optional(),
     inferenceProfiles: z.record(z.string(), z.string()).optional(),
   }),
 );
@@ -550,6 +573,11 @@ export const agentsEndpointSchema = baseEndpointSchema
         .array(z.nativeEnum(AgentCapabilities))
         .optional()
         .default(defaultAgentCapabilities),
+      skills: z
+        .object({
+          maxCatalogSkills: z.number().int().min(1).max(100).optional(),
+        })
+        .optional(),
       remoteApi: remoteApiSchema.optional(),
     }),
   )
@@ -622,6 +650,8 @@ export const endpointSchema = baseEndpointSchema.merge(
     customParams: z
       .object({
         defaultParamsEndpoint: z.string().default('custom'),
+        reasoningFormat: eReasoningParameterFormatSchema.optional(),
+        reasoningKey: eReasoningResponseKeySchema.optional(),
         paramDefinitions: z.array(paramDefinitionSchema).optional(),
       })
       .strict()
@@ -646,6 +676,7 @@ export const azureEndpointSchema = z
         titleMethod: true,
         titleModel: true,
         titlePrompt: true,
+        titleTiming: true,
         titlePromptTemplate: true,
       })
       .partial(),
@@ -885,6 +916,7 @@ const mcpServersSchema = z
     create: z.boolean().optional(),
     share: z.boolean().optional(),
     public: z.boolean().optional(),
+    configureObo: z.boolean().optional(),
     trustCheckbox: z
       .object({
         label: localizedStringSchema.optional(),
@@ -944,6 +976,7 @@ export const interfaceSchema = z
     temporaryChatRetention: z.number().min(1).max(8760).optional(),
     autoSubmitFromUrl: z.boolean().optional(),
     retentionMode: z.nativeEnum(RetentionMode).default(RetentionMode.TEMPORARY),
+    retainAgentFiles: z.boolean().optional(),
     runCode: z.boolean().optional(),
     webSearch: z.boolean().optional(),
     peoplePicker: z
@@ -960,6 +993,7 @@ export const interfaceSchema = z
       .optional(),
     fileSearch: z.boolean().optional(),
     fileCitations: z.boolean().optional(),
+    buildInfo: z.boolean().optional(),
     remoteAgents: z
       .object({
         use: z.boolean().optional(),
@@ -977,6 +1011,16 @@ export const interfaceSchema = z
           share: z.boolean().optional(),
           public: z.boolean().optional(),
           defaultActiveOnShare: z.boolean().optional(),
+        }),
+      ])
+      .optional(),
+    sharedLinks: z
+      .union([
+        z.boolean(),
+        z.object({
+          create: z.boolean().optional(),
+          share: z.boolean().optional(),
+          public: z.boolean().optional(),
         }),
       ])
       .optional(),
@@ -1020,6 +1064,7 @@ export const interfaceSchema = z
     },
     fileSearch: true,
     fileCitations: true,
+    buildInfo: true,
     remoteAgents: {
       use: false,
       create: false,
@@ -1032,6 +1077,11 @@ export const interfaceSchema = z
       share: false,
       public: false,
       defaultActiveOnShare: false,
+    },
+    sharedLinks: {
+      create: true,
+      share: true,
+      public: true,
     },
   });
 
@@ -1055,6 +1105,23 @@ export const turnstileSchema = z.object({
 });
 
 export type TTurnstileConfig = z.infer<typeof turnstileSchema>;
+
+export type TRumConfig = {
+  provider: 'hyperdx';
+  enabled: boolean;
+  url: string;
+  serviceName: string;
+  authMode: 'publicToken' | 'proxy';
+  publicToken?: string;
+  tracePropagationTargets?: string[];
+  consoleCapture?: boolean;
+  disableReplay?: boolean;
+  advancedNetworkCapture?: boolean;
+  sampleRate?: number;
+  environment?: string;
+};
+
+export type StartupConfigContext = 'share';
 
 export type TStartupConfig = {
   appTitle: string;
@@ -1095,7 +1162,12 @@ export type TStartupConfig = {
   modelDescriptions?: Record<string, Record<string, string>>;
   sharedLinksEnabled: boolean;
   publicSharedLinksEnabled: boolean;
+  /** Effective default timing for when conversation titles become fetchable.
+   * `immediate` = fetch in parallel with the active stream (default);
+   * `final` = fetch only after the stream completes (legacy). */
+  titleGenerationTiming?: 'immediate' | 'final';
   analyticsGtmId?: string;
+  rum?: TRumConfig;
   bundlerURL?: string;
   staticBundlerURL?: string;
   sharePointFilePickerEnabled?: boolean;
@@ -1135,6 +1207,12 @@ export type TStartupConfig = {
   mcpPlaceholder?: string;
   conversationImportMaxFileSize?: number;
   experimentVariant?: 'control' | 'sponsored-inline' | 'sponsored-outside' | null;
+  buildInfo?: {
+    commit?: string | null;
+    commitShort?: string | null;
+    branch?: string | null;
+    buildDate?: string | null;
+  };
 };
 
 export enum OCRStrategy {
@@ -1535,6 +1613,7 @@ const sharedOpenAIModels = [
 ];
 
 const sharedAnthropicModels = [
+  'claude-opus-4-8',
   'claude-opus-4-7',
   'claude-sonnet-4-6',
   'claude-opus-4-6',
@@ -1558,6 +1637,7 @@ const sharedAnthropicModels = [
 ];
 
 export const bedrockModels = [
+  'anthropic.claude-opus-4-8',
   'anthropic.claude-opus-4-7',
   'anthropic.claude-sonnet-4-6',
   'anthropic.claude-opus-4-6-v1',
@@ -2107,6 +2187,10 @@ export enum SettingsTabValues {
    * Tab for Personalization Settings
    */
   PERSONALIZATION = 'personalization',
+  /**
+   * Tab for About / Build Info
+   */
+  ABOUT = 'about',
 }
 
 export enum STTProviders {
@@ -2141,10 +2225,18 @@ export enum TTSProviders {
 
 /** Enum for app-wide constants */
 export enum Constants {
-  /** Key for the app's version. */
-  VERSION = 'v0.8.6-rc1',
+  /**
+   * Key for the app's version. The placeholder `__LIBRECHAT_VERSION__` is
+   * swapped in by `@rollup/plugin-replace` during `npm run build:data-provider`
+   * using the value of the root `package.json`'s `version` field. Consumers
+   * always import this via the built dist bundle (see `main` field in
+   * `packages/data-provider/package.json`), so production and UI code get the
+   * substituted value. Only tests that import the TypeScript source directly
+   * would observe the raw placeholder.
+   */
+  VERSION = '__LIBRECHAT_VERSION__',
   /** Key for the Custom Config's version (librechat.yaml). */
-  CONFIG_VERSION = '1.3.11',
+  CONFIG_VERSION = '1.3.12',
   /** Standard value for the first message's `parentMessageId` value, to indicate no parent exists. */
   NO_PARENT = '00000000-0000-0000-0000-000000000000',
   /** Standard value to use whatever the submission prelim. `responseMessageId` is */
@@ -2197,9 +2289,6 @@ export enum Constants {
   /** Subagent spawn tool name (must match `@librechat/agents` `Constants.SUBAGENT`). */
   SUBAGENT = 'subagent',
 }
-
-/** Maximum number of explicit subagents per parent agent. UI + Zod schema share this. */
-export const MAX_SUBAGENTS = 10;
 
 /** Maximum explicit subagent hops allowed from any root agent at runtime. */
 export const MAX_SUBAGENT_DEPTH = 5;

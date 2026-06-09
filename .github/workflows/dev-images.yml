@@ -12,6 +12,8 @@ on:
       - 'mcp-servers/**'
       - 'Dockerfile*'
       - 'librechat.yaml'
+      - 'package.json'
+      - 'package-lock.json'
 
 permissions:
   contents: read
@@ -48,6 +50,13 @@ jobs:
       - name: Prepare environment
         run: cp .env.example .env
 
+      - name: Compute build metadata
+        run: |
+          echo "BUILD_COMMIT=${{ github.sha }}" >> $GITHUB_ENV
+          echo "BUILD_BRANCH=${{ github.ref_name }}" >> $GITHUB_ENV
+          echo "BUILD_DATE=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> $GITHUB_ENV
+
+      # Build and push Docker images for each target
       - name: Build and push Docker images
         uses: docker/build-push-action@v5
         with:
@@ -59,3 +68,7 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/${{ matrix.image_name }}:latest
           platforms: linux/amd64
           target: ${{ matrix.target }}
+          build-args: |
+            BUILD_COMMIT=${{ env.BUILD_COMMIT }}
+            BUILD_BRANCH=${{ env.BUILD_BRANCH }}
+            BUILD_DATE=${{ env.BUILD_DATE }}

@@ -2,7 +2,7 @@ import { Schema } from 'mongoose';
 import type { IAdEvent } from '~/types/adEvent';
 import { AD_EVENT_TYPES, PRODUCT_SOURCES } from '~/types/adEvent';
 
-const adEventSchema = new Schema<IAdEvent>(
+const adEventSchema: Schema<IAdEvent> = new Schema<IAdEvent>(
   {
     userId: { type: Schema.Types.ObjectId, required: true, index: true },
     conversationId: { type: String, required: true, index: true },
