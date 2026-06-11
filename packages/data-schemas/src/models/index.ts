@@ -1,5 +1,6 @@
 import { createConversationTagModel } from './conversationTag';
 import { createAgentCategoryModel } from './agentCategory';
+import { createResearchEventModel } from './researchEvent';
 import { createChatProjectModel } from './chatProject';
 import { createAgentApiKeyModel } from './agentApiKey';
 import { createTransactionModel } from './transaction';
@@ -71,6 +72,7 @@ export function createModels(mongoose: typeof import('mongoose')): {
   Group: ReturnType<typeof createGroupModel>;
   Config: ReturnType<typeof createConfigModel>;
   AdEvent: ReturnType<typeof createAdEventModel>;
+  ResearchEvent: ReturnType<typeof createResearchEventModel>;
 } {
   return {
     User: createUserModel(mongoose),
@@ -107,5 +109,6 @@ export function createModels(mongoose: typeof import('mongoose')): {
     Group: createGroupModel(mongoose),
     Config: createConfigModel(mongoose),
     AdEvent: createAdEventModel(mongoose),
+    ResearchEvent: createResearchEventModel(mongoose),
   };
 }

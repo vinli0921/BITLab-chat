@@ -41,3 +41,4 @@ export * from './web';
 export * from './mcp';
 /* Experiment */
 export * from './adEvent';
+export * from './researchEvent';
