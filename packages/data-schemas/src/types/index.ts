@@ -42,3 +42,5 @@ export * from './mcp';
 /* Experiment */
 export * from './adEvent';
 export * from './researchEvent';
+/* Identity Bridge */
+export * from './participant';

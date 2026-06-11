@@ -1,6 +1,8 @@
+import { createParticipantMappingModel } from './participantMapping';
 import { createConversationTagModel } from './conversationTag';
 import { createAgentCategoryModel } from './agentCategory';
 import { createResearchEventModel } from './researchEvent';
+import { createPairingCodeModel } from './pairingCode';
 import { createChatProjectModel } from './chatProject';
 import { createAgentApiKeyModel } from './agentApiKey';
 import { createTransactionModel } from './transaction';
@@ -73,6 +75,8 @@ export function createModels(mongoose: typeof import('mongoose')): {
   Config: ReturnType<typeof createConfigModel>;
   AdEvent: ReturnType<typeof createAdEventModel>;
   ResearchEvent: ReturnType<typeof createResearchEventModel>;
+  ParticipantMapping: ReturnType<typeof createParticipantMappingModel>;
+  PairingCode: ReturnType<typeof createPairingCodeModel>;
 } {
   return {
     User: createUserModel(mongoose),
@@ -110,5 +114,7 @@ export function createModels(mongoose: typeof import('mongoose')): {
     Config: createConfigModel(mongoose),
     AdEvent: createAdEventModel(mongoose),
     ResearchEvent: createResearchEventModel(mongoose),
+    ParticipantMapping: createParticipantMappingModel(mongoose),
+    PairingCode: createPairingCodeModel(mongoose),
   };
 }
