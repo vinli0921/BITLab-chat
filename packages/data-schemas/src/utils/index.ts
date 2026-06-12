@@ -1,4 +1,5 @@
 export * from './principal';
+export * from './retry';
 export * from './string';
 export * from './tempChatRetention';
 export * from './retention';

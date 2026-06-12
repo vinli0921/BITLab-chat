@@ -20,6 +20,7 @@ const {
   handleJsonParseError,
   GenerationJobManager,
   createStreamServices,
+  ensureResearchIndexes,
   initializeFileStorage,
   initializeDeploymentSkills,
   preAuthTenantMiddleware,
@@ -90,9 +91,15 @@ const startServer = async () => {
   if (typeof Bun !== 'undefined') {
     axios.defaults.headers.common['Accept-Encoding'] = 'gzip';
   }
-  await connectDb();
+  const db = await connectDb();
 
   logger.info('Connected to MongoDB');
+  ensureResearchIndexes(db).catch((err) => {
+    logger.error(
+      '[ensureResearchIndexes] Index build failed — research ingest idempotency is not guaranteed:',
+      err,
+    );
+  });
   indexSync().catch((err) => {
     logger.error('[indexSync] Background sync failed:', err);
   });
