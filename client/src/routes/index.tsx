@@ -8,6 +8,7 @@ import {
   TwoFactorScreen,
   RequestPasswordReset,
 } from '~/components/Auth';
+import ResearchIdentityBeacon from '~/components/System/ResearchIdentityBeacon';
 import { MarketplaceProvider } from '~/components/Agents/MarketplaceContext';
 import AgentMarketplace from '~/components/Agents/Marketplace';
 import { OAuthSuccess, OAuthError } from '~/components/OAuth';
@@ -28,6 +29,7 @@ const AuthLayout = () => (
       <Outlet />
     </WithRum>
     <ApiErrorWatcher />
+    <ResearchIdentityBeacon />
   </AuthContextProvider>
 );
 
