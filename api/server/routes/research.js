@@ -1,7 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const { requireJwtAuth } = require('~/server/middleware');
-const { pairingLimiter } = require('~/server/middleware/limiters');
+const { pairingLimiter, ingestLimiter } = require('~/server/middleware/limiters');
 const {
   logResearchEvents,
   processExtensionBatch,
@@ -32,7 +32,7 @@ function isValidExtensionEvent(event) {
   return event != null && typeof event.type === 'string';
 }
 
-router.post('/events', (req, res) => {
+router.post('/events', ingestLimiter, (req, res) => {
   if (hasValidStudyKey(req)) {
     return handleExtensionEvents(req, res);
   }
