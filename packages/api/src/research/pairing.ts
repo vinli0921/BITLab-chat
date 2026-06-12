@@ -32,6 +32,7 @@ export async function createPairingCode(params: {
 export async function redeemPairingCode(params: {
   code: string;
   db: typeof mongoose;
+  consentVersion?: string;
 }): Promise<{ participantId: string } | null> {
   const PairingCode = params.db.models.PairingCode as mongoose.Model<IPairingCode>;
   const ParticipantMapping = params.db.models
@@ -53,6 +54,7 @@ export async function redeemPairingCode(params: {
     userId: pairing.userId,
     studyId: pairing.studyId,
     source: 'pairing',
+    consentVersion: params.consentVersion,
   });
   return { participantId };
 }
@@ -76,12 +78,17 @@ export async function upsertBeaconMapping(params: {
   userId: string;
   studyId: string;
   db: typeof mongoose;
+  consentVersion?: string;
 }): Promise<{ conflict: boolean }> {
   const ParticipantMapping = params.db.models
     .ParticipantMapping as mongoose.Model<IParticipantMapping>;
 
   const existing = await ParticipantMapping.findOne({ participantId: params.participantId });
   if (existing != null) {
+    if (params.consentVersion != null && existing.consentVersion !== params.consentVersion) {
+      existing.consentVersion = params.consentVersion;
+      await existing.save();
+    }
     return { conflict: existing.userId.toString() !== params.userId };
   }
 
@@ -91,6 +98,7 @@ export async function upsertBeaconMapping(params: {
       userId: params.userId,
       studyId: params.studyId,
       source: 'beacon',
+      consentVersion: params.consentVersion,
     });
     return { conflict: false };
   } catch (error) {

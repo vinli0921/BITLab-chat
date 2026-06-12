@@ -17,6 +17,7 @@ const ENVELOPE_KEYS = new Set([
   'participantId',
   'platformName',
   'appUserId', // stripped: the user join lives only in ParticipantMapping
+  'consentVersion', // stripped: mapping metadata, not behavioral payload
 ]);
 
 export interface RawExtensionEvent {
@@ -28,6 +29,7 @@ export interface RawExtensionEvent {
   sessionId?: string;
   platformName?: string;
   appUserId?: string;
+  consentVersion?: string;
   [key: string]: ResearchEventPayloadValue | undefined;
 }
 
@@ -56,7 +58,13 @@ export async function processExtensionBatch(params: {
 
   for (const event of events) {
     if (event.type === 'identity_bridge' && isObjectIdString(event.appUserId)) {
-      await upsertBeaconMapping({ participantId, userId: event.appUserId, studyId, db });
+      await upsertBeaconMapping({
+        participantId,
+        userId: event.appUserId,
+        studyId,
+        db,
+        consentVersion: event.consentVersion,
+      });
     }
   }
 

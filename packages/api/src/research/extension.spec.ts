@@ -109,6 +109,28 @@ describe('processExtensionBatch', () => {
     expect((bridgeDoc as { payload?: Record<string, unknown> }).payload?.appUserId).toBeUndefined();
   });
 
+  it('stores consentVersion from identity_bridge on the mapping and strips it from the payload', async () => {
+    const uid = new mongoose.Types.ObjectId().toString();
+    await processExtensionBatch({
+      participantId: 'p-consent',
+      sessionId: 'session_1',
+      events: [rawEvent({ type: 'identity_bridge', appUserId: uid, consentVersion: 'v1' })],
+      studyId: 'study-1',
+      db: mongoose,
+    });
+    const mapping = (await mongoose.models.ParticipantMapping.findOne({
+      participantId: 'p-consent',
+    }).lean()) as { consentVersion?: string } | null;
+    expect(mapping?.consentVersion).toBe('v1');
+
+    const bridgeDoc = await mongoose.models.ResearchEvent.findOne({
+      eventType: 'identity_bridge',
+    }).lean();
+    expect(
+      (bridgeDoc as { payload?: Record<string, unknown> }).payload?.consentVersion,
+    ).toBeUndefined();
+  });
+
   it('flags events that arrive without capture timestamps', async () => {
     const result = await processExtensionBatch({
       participantId: 'p-legacy',

@@ -90,6 +90,66 @@ describe('pairing', () => {
     expect(resolved?.toString()).toBe(firstUser);
   });
 
+  it('stores consentVersion on a new beacon mapping and leaves it unset when absent', async () => {
+    await upsertBeaconMapping({
+      participantId: 'p-consent',
+      userId: userId(),
+      studyId: 'study-1',
+      db: mongoose,
+      consentVersion: 'v1',
+    });
+    const withConsent = (await mongoose.models.ParticipantMapping.findOne({
+      participantId: 'p-consent',
+    }).lean()) as { consentVersion?: string } | null;
+    expect(withConsent?.consentVersion).toBe('v1');
+
+    await upsertBeaconMapping({
+      participantId: 'p-noconsent',
+      userId: userId(),
+      studyId: 'study-1',
+      db: mongoose,
+    });
+    const withoutConsent = (await mongoose.models.ParticipantMapping.findOne({
+      participantId: 'p-noconsent',
+    }).lean()) as { consentVersion?: string } | null;
+    expect(withoutConsent?.consentVersion).toBeUndefined();
+  });
+
+  it('updates consentVersion when a newer version arrives for the same participant', async () => {
+    const uid = userId();
+    await upsertBeaconMapping({
+      participantId: 'p-reconsent',
+      userId: uid,
+      studyId: 'study-1',
+      db: mongoose,
+      consentVersion: 'v1',
+    });
+    await upsertBeaconMapping({
+      participantId: 'p-reconsent',
+      userId: uid,
+      studyId: 'study-1',
+      db: mongoose,
+      consentVersion: 'v2',
+    });
+    const mapping = (await mongoose.models.ParticipantMapping.findOne({
+      participantId: 'p-reconsent',
+    }).lean()) as { consentVersion?: string } | null;
+    expect(mapping?.consentVersion).toBe('v2');
+  });
+
+  it('stores consentVersion on a pairing redemption when provided', async () => {
+    const { code } = await createPairingCode({
+      userId: userId(),
+      studyId: 'study-1',
+      db: mongoose,
+    });
+    const redeemed = await redeemPairingCode({ code, db: mongoose, consentVersion: 'v3' });
+    const mapping = (await mongoose.models.ParticipantMapping.findOne({
+      participantId: redeemed!.participantId,
+    }).lean()) as { consentVersion?: string } | null;
+    expect(mapping?.consentVersion).toBe('v3');
+  });
+
   it('handles concurrent upserts for the same new participantId without rejecting', async () => {
     const firstUser = userId();
     const secondUser = userId();
