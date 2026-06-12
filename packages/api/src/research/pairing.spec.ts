@@ -137,6 +137,27 @@ describe('pairing', () => {
     expect(mapping?.consentVersion).toBe('v2');
   });
 
+  it('preserves consentVersion when a later bridge arrives without one', async () => {
+    const uid = userId();
+    await upsertBeaconMapping({
+      participantId: 'p-preserve',
+      userId: uid,
+      studyId: 'study-1',
+      db: mongoose,
+      consentVersion: 'v1',
+    });
+    await upsertBeaconMapping({
+      participantId: 'p-preserve',
+      userId: uid,
+      studyId: 'study-1',
+      db: mongoose,
+    });
+    const mapping = (await mongoose.models.ParticipantMapping.findOne({
+      participantId: 'p-preserve',
+    }).lean()) as { consentVersion?: string } | null;
+    expect(mapping?.consentVersion).toBe('v1');
+  });
+
   it('stores consentVersion on a pairing redemption when provided', async () => {
     const { code } = await createPairingCode({
       userId: userId(),
