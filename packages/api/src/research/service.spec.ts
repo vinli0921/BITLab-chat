@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
-import { createModels } from '@librechat/data-schemas';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import { logger, createModels } from '@librechat/data-schemas';
 import { logResearchEvents } from './service';
 
 let mongod: MongoMemoryServer;
@@ -45,7 +45,7 @@ describe('logResearchEvents', () => {
       },
       db: mongoose,
     });
-    expect(result).toEqual({ inserted: 2, duplicates: 0 });
+    expect(result).toEqual({ inserted: 2, duplicates: 0, failed: 0 });
     const docs = await mongoose.models.ResearchEvent.find({}).lean();
     expect(docs).toHaveLength(2);
     expect(docs[0].source).toBe('app-client');
@@ -65,7 +65,22 @@ describe('logResearchEvents', () => {
       context: { source: 'app-client', studyId: 'study-1' },
       db: mongoose,
     });
-    expect(result).toEqual({ inserted: 1, duplicates: 1 });
+    expect(result).toEqual({ inserted: 1, duplicates: 1, failed: 0 });
+  });
+
+  it('counts validation-dropped events while inserting valid ones in the same batch', async () => {
+    const warnSpy = jest.spyOn(logger, 'warn').mockImplementation(() => logger);
+    const invalid = { ...input('invalid'), tsWall: Number.NaN };
+    const result = await logResearchEvents({
+      events: [input('valid-1'), invalid, input('valid-2')],
+      context: { source: 'app-client', studyId: 'study-1' },
+      db: mongoose,
+    });
+    expect(result).toEqual({ inserted: 2, duplicates: 0, failed: 1 });
+    expect(await mongoose.models.ResearchEvent.countDocuments({})).toBe(2);
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    expect(warnSpy.mock.calls[0][0]).toMatch(/dropped 1 event/);
+    warnSpy.mockRestore();
   });
 
   it('rejects oversized batches', async () => {
@@ -85,7 +100,7 @@ describe('logResearchEvents', () => {
       context: { source: 'app-client', studyId: 'study-1' },
       db: mongoose,
     });
-    expect(result).toEqual({ inserted: 0, duplicates: 0 });
+    expect(result).toEqual({ inserted: 0, duplicates: 0, failed: 0 });
     expect(await mongoose.models.ResearchEvent.countDocuments({})).toBe(0);
   });
 

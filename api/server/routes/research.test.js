@@ -75,7 +75,7 @@ describe('POST /api/research/events (app path)', () => {
       .post('/api/research/events')
       .send({ events: [event('a1'), event('a2')] });
     expect(res.status).toBe(200);
-    expect(res.body).toEqual({ inserted: 2, duplicates: 0 });
+    expect(res.body).toEqual({ inserted: 2, duplicates: 0, failed: 0 });
     const docs = await mongoose.models.ResearchEvent.find({}).lean();
     expect(docs).toHaveLength(2);
     expect(docs[0].userId.toString()).toBe(user.id);
