@@ -30,6 +30,7 @@ export * from './types/skills';
 export * from './types/runs';
 export * from './types/web';
 export * from './types/graph';
+export * from './types/research';
 export * from './types/experiment';
 /* access permissions */
 export * from './accessPermissions';

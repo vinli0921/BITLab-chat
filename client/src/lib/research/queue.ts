@@ -1,16 +1,9 @@
 import axios from 'axios';
+import type { ResearchPayloadValue } from 'librechat-data-provider';
 
 const ENDPOINT = '/api/research/events';
 const FLUSH_INTERVAL_MS = 5000;
 const MAX_BATCH = 50;
-
-export type ResearchPayloadValue =
-  | string
-  | number
-  | boolean
-  | null
-  | ResearchPayloadValue[]
-  | { [key: string]: ResearchPayloadValue };
 
 export interface ResearchEventDraft {
   eventType: string;
