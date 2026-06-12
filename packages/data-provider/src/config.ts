@@ -1997,6 +1997,14 @@ export enum ViolationTypes {
    */
   GENERAL = 'general',
   /**
+   * Pairing attempt violations (research participant pairing).
+   */
+  PAIRING = 'pairing',
+  /**
+   * Research event ingest violations.
+   */
+  RESEARCH_INGEST = 'research_ingest',
+  /**
    * Login attempt violations.
    */
   LOGINS = 'logins',

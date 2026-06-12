@@ -10,7 +10,7 @@ const windowInMinutes = windowMs / 60000;
 const message = 'too many pairing attempts';
 
 const handler = async (req, res) => {
-  const type = ViolationTypes.GENERAL;
+  const type = ViolationTypes.PAIRING;
   const errorMessage = {
     type,
     max,
