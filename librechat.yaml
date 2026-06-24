@@ -546,7 +546,6 @@ modelSpecs:
     - name: 'gpt-5.5'
       label: 'GPT-5.5'
       group: 'openAI'
-      webSearch: true
       preset:
         endpoint: 'openAI'
         model: 'gpt-5.5'
