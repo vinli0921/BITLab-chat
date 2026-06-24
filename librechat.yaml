@@ -546,6 +546,7 @@ modelSpecs:
     - name: 'gpt-5.5'
       label: 'GPT-5.5'
       group: 'openAI'
+      hideBadgeRow: true
       preset:
         endpoint: 'openAI'
         model: 'gpt-5.5'
