@@ -24,10 +24,21 @@ jest.mock('~/hooks/useAdContext', () => ({
   postAdEvent: jest.fn(),
 }));
 
+jest.mock('~/lib/research/queue', () => ({
+  emitResearchEvent: jest.fn(),
+}));
+
+jest.mock('~/lib/research/presence', () => ({
+  isActive: () => true,
+  subscribePresence: jest.fn(() => jest.fn()),
+}));
+
 import { postAdEvent } from '~/hooks/useAdContext';
+import { emitResearchEvent } from '~/lib/research/queue';
 
 afterEach(() => {
   (postAdEvent as jest.Mock).mockClear();
+  (emitResearchEvent as jest.Mock).mockClear();
   observers.length = 0;
 });
 
@@ -125,5 +136,34 @@ describe('useMessageTracking', () => {
       ([arg]) => arg.eventType === 'response_viewport_exit',
     );
     expect(exitCall[0].scrollDepthPercent).toBeGreaterThan(0);
+  });
+
+  it('emits ResearchEvent envelopes for enter and exit with correct shape', () => {
+    const { result } = renderHook(() =>
+      useMessageTracking({ messageId: 'm4', conversationId: 'c4' }),
+    );
+    const el = document.createElement('div');
+    act(() => result.current.trackingRef(el));
+
+    act(() => trigger(true));
+    expect(emitResearchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: 'response_viewport_enter',
+        payload: expect.objectContaining({ revisitIndex: 0 }),
+      }),
+    );
+
+    act(() => trigger(false));
+    expect(emitResearchEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        eventType: 'response_viewport_exit',
+        payload: expect.objectContaining({
+          revisitIndex: 0,
+          dwellWallMs: expect.any(Number),
+          dwellActiveMs: expect.any(Number),
+          scrollDepthPercent: expect.any(Number),
+        }),
+      }),
+    );
   });
 });

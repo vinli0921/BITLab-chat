@@ -12,6 +12,8 @@ const {
 
 const namespaces = {
   [ViolationTypes.GENERAL]: new Keyv({ store: logFile, namespace: 'violations' }),
+  [ViolationTypes.PAIRING]: violationCache(ViolationTypes.PAIRING),
+  [ViolationTypes.RESEARCH_INGEST]: violationCache(ViolationTypes.RESEARCH_INGEST),
   [ViolationTypes.LOGINS]: violationCache(ViolationTypes.LOGINS),
   [ViolationTypes.CONCURRENT]: violationCache(ViolationTypes.CONCURRENT),
   [ViolationTypes.NON_BROWSER]: violationCache(ViolationTypes.NON_BROWSER),

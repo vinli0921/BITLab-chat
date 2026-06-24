@@ -33,11 +33,13 @@ const auth = require('./auth');
 const keys = require('./keys');
 const user = require('./user');
 const experiment = require('./experiment');
+const research = require('./research');
 const mcp = require('./mcp');
 const rum = require('./rum');
 
 module.exports = {
   experiment,
+  research,
   rum,
   mcp,
   auth,

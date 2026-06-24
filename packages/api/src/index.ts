@@ -76,3 +76,4 @@ export type * from './flow/types';
 export type * from './types';
 /* Experiment */
 export * from './experiment';
+export * from './research';
