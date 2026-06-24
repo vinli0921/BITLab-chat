@@ -109,7 +109,7 @@ interface:
     # - create: Allow users to create and manage new MCP servers
     # - share: Allow users to share MCP servers with other users
     # - public: Allow users to share MCP servers publicly (with everyone)
-    use: false
+    use: true
     share: false
     create: false
     public: false
