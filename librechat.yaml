@@ -543,13 +543,13 @@ modelSpecs:
   addedEndpoints:
     - openAI
   list:
-    - name: 'gpt-5.4'
-      label: 'GPT-5.4'
+    - name: 'gpt-5.5'
+      label: 'GPT-5.5'
       group: 'openAI'
       webSearch: true
       preset:
         endpoint: 'openAI'
-        model: 'gpt-5.4'
+        model: 'gpt-5.5'
         web_search: true
       mcpServers:
         - product-search
